@@ -1,0 +1,30 @@
+[package]
+name = "rusty_esp_core-esp"
+description = "Chip backends for the rusty_esp_core HAL seams (clock, rng, kv): the WRAP crate. `esp-hal` (Track B, no_std + Embassy) or `esp-idf` (Track A, std on ESP-IDF). The only crate in the workspace allowed a fenced unsafe block, and only at an FFI boundary."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+readme = "README.md"
+documentation = "https://docs.rs/rusty_esp_core-esp"
+keywords = ["esp32", "embedded", "esp-hal", "esp-idf", "remade-with-rust"]
+categories = ["embedded", "no-std", "hardware-support"]
+
+[features]
+default = []
+std = ["rusty_esp_core/std"]
+alloc = ["rusty_esp_core/alloc"]
+# Track B — bare metal: esp-hal Rng + esp-storage/NVS. Lands with the first
+# backend, pinned to the versions recorded in the plan.
+esp-hal = ["alloc"]
+# Track A — std on ESP-IDF: esp-idf-svc NVS + Instant. Same rule.
+esp-idf = ["std"]
+
+[dependencies]
+rusty_esp_core = { workspace = true }
+
+[lints]
+workspace = true
