@@ -11,11 +11,12 @@
 //!
 //! | Module | Holds | Rule |
 //! |---|---|---|
-//! | [`time`] | [`Micros`], a monotonic device timestamp | value type, no clock |
+//! | [`time`] | [`Micros`], a monotonic device timestamp; [`WallOffset`], the host's device→wall mapping with its error bound | value type, no clock |
 //! | [`error`] | [`Error`], one `Copy` error for the family | no `String`, no `alloc` |
 //! | [`frame`] | [`Frame`], a **borrowed** image/video frame | planes over caller memory |
 //! | [`pcm`] | [`PcmBlock`], a **borrowed** interleaved PCM block | same |
-//! | [`capability`] | [`Manifest`], what a device can do, canonically encoded | signed by `rusty_esp_mid` |
+//! | [`capability`] | [`Manifest`], what a device can do, canonically encoded; [`capability::ParsedManifest`] reads it back (`alloc`) | signed by `rusty_esp_mid` |
+//! | [`media`] | [`MediaPacket`], a **borrowed** coded packet and its [`Codec`] | the shape every transport frames |
 //! | [`hal`] | [`Clock`], [`Rng`], [`Kv`] — the three seams every backend fills | traits only |
 //!
 //! Nothing here is a driver, an allocator, a codec, or a product type. If a
@@ -39,16 +40,18 @@ pub mod capability;
 pub mod error;
 pub mod frame;
 pub mod hal;
+pub mod media;
 pub mod pcm;
 pub mod prelude;
 pub mod time;
 
 pub use capability::{Capability, Chip, Declared, Manifest, Status};
 pub use error::Error;
-pub use frame::{Frame, Geometry, PixelFormat, Plane, Planes};
+pub use frame::{Frame, FrameMut, Geometry, PixelFormat, Plane, PlaneMut, Planes, PlanesMut};
 pub use hal::{Clock, Kv, Rng};
+pub use media::{Codec, MediaPacket};
 pub use pcm::{PcmBlock, PcmFormat, SampleFormat};
-pub use time::Micros;
+pub use time::{Micros, WallOffset};
 
 /// Crate version, for capability manifests and logs.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -30,6 +30,14 @@ that is not backed by a test in this repository.
 `--no-default-features` and with `--features alloc`. Nothing here has run on
 a chip yet; the `-esp` backend crate holds the seam traits only.
 
+**C1 and C2 done (2026-09-02).** `Manifest::parse` reads the canonical
+encoding back into an owned `ParsedManifest` (`alloc`) that re-encodes byte
+for byte, `Chip::parse` names every part, `MediaPacket` and `Codec` moved
+here from the video package, and `FrameMut` is the in-place twin of `Frame`.
+`WallOffset` is the host's one-shot device-to-wall mapping with its error
+bound; unmeasured, it says so with an infinite error rather than a zero.
+26 tests.
+
 ## What is in it
 
 | Module | Types |

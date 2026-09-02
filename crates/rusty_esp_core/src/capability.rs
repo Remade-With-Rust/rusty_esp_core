@@ -278,6 +278,25 @@ impl Chip {
     pub const fn has_pie(self) -> bool {
         matches!(self, Chip::Esp32S3 | Chip::Esp32P4)
     }
+
+    /// Every part, in tag order.
+    pub const ALL: &'static [Chip] = &[
+        Chip::Esp32,
+        Chip::Esp32S2,
+        Chip::Esp32S3,
+        Chip::Esp32C3,
+        Chip::Esp32C5,
+        Chip::Esp32C6,
+        Chip::Esp32C61,
+        Chip::Esp32H2,
+        Chip::Esp32P4,
+    ];
+
+    /// Parse a wire tag (`esp32s3`).
+    #[must_use]
+    pub fn parse(tag: &str) -> Option<Chip> {
+        Chip::ALL.iter().copied().find(|c| c.tag() == tag)
+    }
 }
 
 /// Longest `model` or `firmware` field accepted, in bytes.
@@ -308,18 +327,8 @@ impl<'a> Manifest<'a> {
     /// Validate every line and the field lengths. A duplicate capability is
     /// an error: one device, one truth per capability.
     pub fn validate(&self) -> Result<()> {
-        if self.model.is_empty()
-            || self.model.len() > MAX_FIELD_LEN
-            || self.firmware.is_empty()
-            || self.firmware.len() > MAX_FIELD_LEN
-        {
-            return Err(Error::InvalidFormat);
-        }
-        for field in [self.model, self.firmware] {
-            if field.bytes().any(|b| b == b'\n' || b == b'=' || b < 0x20) {
-                return Err(Error::InvalidFormat);
-            }
-        }
+        check_field(self.model)?;
+        check_field(self.firmware)?;
         for (i, d) in self.declared.iter().enumerate() {
             d.validate()?;
             if self.declared[..i]
@@ -349,31 +358,20 @@ impl<'a> Manifest<'a> {
     /// ```
     pub fn encode(&self, out: &mut [u8]) -> Result<usize> {
         self.validate()?;
-        let mut w = Cursor::new(out);
-        w.str("janus/")?;
-        w.byte(b'0' + crate::FORMAT_VERSION)?;
-        w.byte(b'\n')?;
-        w.str("model=")?;
-        w.str(self.model)?;
-        w.byte(b'\n')?;
-        w.str("fw=")?;
-        w.str(self.firmware)?;
-        w.byte(b'\n')?;
-        w.str("chip=")?;
-        w.str(self.chip.tag())?;
-        w.byte(b'\n')?;
-        for cap in Capability::ALL {
-            if let Some(d) = self.declared.iter().find(|d| d.capability == *cap) {
-                w.str("cap=")?;
-                w.str(cap.tag())?;
-                w.byte(b':')?;
-                w.str(d.status.tag())?;
-                w.byte(b':')?;
-                w.str(d.backing)?;
-                w.byte(b'\n')?;
-            }
-        }
-        Ok(w.len())
+        encode_lines(out, self.model, self.firmware, self.chip, |cap| {
+            self.declared
+                .iter()
+                .find(|d| d.capability == cap)
+                .map(|d| (d.status, d.backing))
+        })
+    }
+
+    /// Read a canonical encoding back into an owned [`ParsedManifest`]
+    /// (`alloc`). Strict: the lines must be in canonical order, every tag
+    /// known, no duplicates, so `parse` then `encode` reproduces the bytes.
+    #[cfg(feature = "alloc")]
+    pub fn parse(bytes: &[u8]) -> Result<ParsedManifest> {
+        ParsedManifest::parse(bytes)
     }
 
     /// Bytes [`Manifest::encode`] will produce, for sizing a buffer.
@@ -393,6 +391,234 @@ impl<'a> Manifest<'a> {
                 + d.backing.len();
         }
         n
+    }
+}
+
+/// The `model` / `firmware` field rule: non-empty, at most
+/// [`MAX_FIELD_LEN`] bytes, no newline, no `=`, no control character.
+fn check_field(field: &str) -> Result<()> {
+    if field.is_empty()
+        || field.len() > MAX_FIELD_LEN
+        || field.bytes().any(|b| b == b'\n' || b == b'=' || b < 0x20)
+    {
+        return Err(Error::InvalidFormat);
+    }
+    Ok(())
+}
+
+/// The canonical lines, from any source of declarations: `find` answers for
+/// each capability in [`Capability::ALL`] order, so the same facts always
+/// produce the same bytes.
+fn encode_lines<'s>(
+    out: &mut [u8],
+    model: &str,
+    firmware: &str,
+    chip: Chip,
+    mut find: impl FnMut(Capability) -> Option<(Status, &'s str)>,
+) -> Result<usize> {
+    let mut w = Cursor::new(out);
+    w.str("janus/")?;
+    w.byte(b'0' + crate::FORMAT_VERSION)?;
+    w.byte(b'\n')?;
+    w.str("model=")?;
+    w.str(model)?;
+    w.byte(b'\n')?;
+    w.str("fw=")?;
+    w.str(firmware)?;
+    w.byte(b'\n')?;
+    w.str("chip=")?;
+    w.str(chip.tag())?;
+    w.byte(b'\n')?;
+    for cap in Capability::ALL {
+        if let Some((status, backing)) = find(*cap) {
+            w.str("cap=")?;
+            w.str(cap.tag())?;
+            w.byte(b':')?;
+            w.str(status.tag())?;
+            w.byte(b':')?;
+            w.str(backing)?;
+            w.byte(b'\n')?;
+        }
+    }
+    Ok(w.len())
+}
+
+/// One declaration read back from the wire (`alloc`).
+#[cfg(feature = "alloc")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ParsedDeclared {
+    /// What.
+    pub capability: Capability,
+    /// How real.
+    pub status: Status,
+    /// The crate behind it (`""` when planned).
+    pub backing: alloc::string::String,
+}
+
+#[cfg(feature = "alloc")]
+impl ParsedDeclared {
+    /// The honesty rule, as for [`Declared::validate`].
+    pub fn validate(&self) -> Result<()> {
+        let ok = match self.status {
+            Status::Available | Status::Preview => !self.backing.is_empty(),
+            Status::Planned => self.backing.is_empty(),
+        };
+        let clean = self
+            .backing
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-');
+        if ok && clean {
+            Ok(())
+        } else {
+            Err(Error::InvalidFormat)
+        }
+    }
+}
+
+/// A manifest read back from its canonical encoding: what a host holds
+/// after `janus/rpc/1` answered `Manifest`, or a bridge after a neighbour
+/// sent its own. Owned, so it outlives the bytes it came from; `encode`
+/// reproduces those bytes exactly, which is what lets the signature be
+/// checked over what was parsed.
+#[cfg(feature = "alloc")]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedManifest {
+    /// The maker's model string.
+    pub model: alloc::string::String,
+    /// Firmware version.
+    pub firmware: alloc::string::String,
+    /// The part.
+    pub chip: Chip,
+    /// Every declaration, in the order the wire had them.
+    pub declared: alloc::vec::Vec<ParsedDeclared>,
+}
+
+#[cfg(feature = "alloc")]
+impl ParsedManifest {
+    /// Parse canonical bytes. `InvalidFormat` for anything that is not the
+    /// canonical form (order, a missing trailing newline, a bad field, a
+    /// duplicate capability, a status that is not one of the three);
+    /// `Unsupported` for a format version or capability tag this crate does
+    /// not know — a newer device, which a host must say it cannot read
+    /// rather than read partially.
+    pub fn parse(bytes: &[u8]) -> Result<Self> {
+        use alloc::string::ToString;
+        let text = core::str::from_utf8(bytes).map_err(|_| Error::InvalidFormat)?;
+        let body = text.strip_suffix('\n').ok_or(Error::InvalidFormat)?;
+        let mut lines = body.split('\n');
+        match lines.next() {
+            Some("janus/1") => {}
+            Some(v) if v.starts_with("janus/") => return Err(Error::Unsupported),
+            _ => return Err(Error::InvalidFormat),
+        }
+        let model = lines
+            .next()
+            .and_then(|l| l.strip_prefix("model="))
+            .ok_or(Error::InvalidFormat)?;
+        let firmware = lines
+            .next()
+            .and_then(|l| l.strip_prefix("fw="))
+            .ok_or(Error::InvalidFormat)?;
+        let chip_tag = lines
+            .next()
+            .and_then(|l| l.strip_prefix("chip="))
+            .ok_or(Error::InvalidFormat)?;
+        check_field(model)?;
+        check_field(firmware)?;
+        let chip = Chip::parse(chip_tag).ok_or(Error::Unsupported)?;
+        let mut declared = alloc::vec::Vec::new();
+        for line in lines {
+            let rest = line.strip_prefix("cap=").ok_or(Error::InvalidFormat)?;
+            let mut parts = rest.splitn(3, ':');
+            let (tag, status, backing) = match (parts.next(), parts.next(), parts.next()) {
+                (Some(t), Some(s), Some(b)) => (t, s, b),
+                _ => return Err(Error::InvalidFormat),
+            };
+            let capability = Capability::parse(tag).ok_or(Error::Unsupported)?;
+            let status = Status::parse(status).ok_or(Error::InvalidFormat)?;
+            let d = ParsedDeclared {
+                capability,
+                status,
+                backing: backing.to_string(),
+            };
+            d.validate()?;
+            if declared
+                .iter()
+                .any(|e: &ParsedDeclared| e.capability == capability)
+            {
+                return Err(Error::InvalidFormat);
+            }
+            declared.push(d);
+        }
+        Ok(ParsedManifest {
+            model: model.to_string(),
+            firmware: firmware.to_string(),
+            chip,
+            declared,
+        })
+    }
+
+    /// True when the manifest declares `capability` as available.
+    #[must_use]
+    pub fn has(&self, capability: Capability) -> bool {
+        self.declared
+            .iter()
+            .any(|d| d.capability == capability && d.status == Status::Available)
+    }
+
+    /// The same rules as [`Manifest::validate`].
+    pub fn validate(&self) -> Result<()> {
+        check_field(&self.model)?;
+        check_field(&self.firmware)?;
+        for (i, d) in self.declared.iter().enumerate() {
+            d.validate()?;
+            if self.declared[..i]
+                .iter()
+                .any(|e| e.capability == d.capability)
+            {
+                return Err(Error::InvalidFormat);
+            }
+        }
+        Ok(())
+    }
+
+    /// The canonical encoding, byte for byte what [`Manifest::encode`] writes
+    /// for the same facts.
+    pub fn encode(&self, out: &mut [u8]) -> Result<usize> {
+        self.validate()?;
+        encode_lines(out, &self.model, &self.firmware, self.chip, |cap| {
+            self.declared
+                .iter()
+                .find(|d| d.capability == cap)
+                .map(|d| (d.status, d.backing.as_str()))
+        })
+    }
+
+    /// Bytes [`ParsedManifest::encode`] will produce.
+    #[must_use]
+    pub fn encoded_len(&self) -> usize {
+        let mut n = "janus/1\n".len()
+            + "model=\n".len()
+            + self.model.len()
+            + "fw=\n".len()
+            + self.firmware.len()
+            + "chip=\n".len()
+            + self.chip.tag().len();
+        for d in &self.declared {
+            n += "cap=::\n".len()
+                + d.capability.tag().len()
+                + d.status.tag().len()
+                + d.backing.len();
+        }
+        n
+    }
+
+    /// The encoding as a fresh `Vec`.
+    pub fn to_bytes(&self) -> Result<alloc::vec::Vec<u8>> {
+        let mut out = alloc::vec![0u8; self.encoded_len()];
+        let n = self.encode(&mut out)?;
+        out.truncate(n);
+        Ok(out)
     }
 }
 
@@ -469,31 +695,23 @@ mod tests {
 
     #[test]
     fn honesty_rule() {
-        assert!(
-            Declared::available(Capability::Gpio, "x")
-                .validate()
-                .is_ok()
-        );
-        assert!(
-            Declared::available(Capability::Gpio, "")
-                .validate()
-                .is_err()
-        );
-        assert!(Declared::planned(Capability::Gpio).validate().is_ok());
-        assert!(
-            Declared {
-                capability: Capability::Gpio,
-                status: Status::Planned,
-                backing: "x",
-            }
+        assert!(Declared::available(Capability::Gpio, "x")
             .validate()
-            .is_err()
-        );
-        assert!(
-            Declared::available(Capability::Gpio, "bad crate")
-                .validate()
-                .is_err()
-        );
+            .is_ok());
+        assert!(Declared::available(Capability::Gpio, "")
+            .validate()
+            .is_err());
+        assert!(Declared::planned(Capability::Gpio).validate().is_ok());
+        assert!(Declared {
+            capability: Capability::Gpio,
+            status: Status::Planned,
+            backing: "x",
+        }
+        .validate()
+        .is_err());
+        assert!(Declared::available(Capability::Gpio, "bad crate")
+            .validate()
+            .is_err());
     }
 
     #[test]
@@ -532,6 +750,176 @@ mod tests {
             ..manifest()
         };
         assert_eq!(m.validate(), Err(Error::InvalidFormat));
+    }
+
+    #[test]
+    fn chip_tags_parse_back() {
+        for c in Chip::ALL {
+            assert_eq!(Chip::parse(c.tag()), Some(*c));
+        }
+        assert_eq!(Chip::parse("esp8266"), None);
+        assert_eq!(Chip::ALL.len(), 9);
+    }
+
+    #[cfg(feature = "alloc")]
+    /// A small deterministic generator (an LCG) for the corpus below: no
+    /// dependency, same corpus every run.
+    struct Lcg(u64);
+    impl Lcg {
+        fn next(&mut self) -> u64 {
+            self.0 = self
+                .0
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            self.0 >> 33
+        }
+        fn below(&mut self, n: u64) -> u64 {
+            self.next() % n
+        }
+        fn field(&mut self, out: &mut alloc::string::String, max: usize) {
+            const ALPHABET: &[u8] =
+                b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-_. :+";
+            let len = 1 + self.below(max as u64) as usize;
+            out.clear();
+            for _ in 0..len {
+                out.push(ALPHABET[self.below(ALPHABET.len() as u64) as usize] as char);
+            }
+        }
+        fn backing(&mut self, out: &mut alloc::string::String) {
+            const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789_-";
+            let len = 1 + self.below(24) as usize;
+            out.clear();
+            for _ in 0..len {
+                out.push(ALPHABET[self.below(ALPHABET.len() as u64) as usize] as char);
+            }
+        }
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn parse_round_trips_a_corpus_byte_for_byte() {
+        let mut rng = Lcg(0x4A414E5553);
+        let mut model = alloc::string::String::new();
+        let mut firmware = alloc::string::String::new();
+        let mut backing = alloc::string::String::new();
+        let mut buf = [0u8; 4096];
+        let mut again = [0u8; 4096];
+        for _ in 0..400 {
+            rng.field(&mut model, MAX_FIELD_LEN);
+            rng.field(&mut firmware, MAX_FIELD_LEN);
+            let chip = Chip::ALL[rng.below(Chip::ALL.len() as u64) as usize];
+            let mut declared = alloc::vec::Vec::new();
+            for cap in Capability::ALL {
+                match rng.below(4) {
+                    0 => {}
+                    1 => declared.push(ParsedDeclared {
+                        capability: *cap,
+                        status: Status::Planned,
+                        backing: alloc::string::String::new(),
+                    }),
+                    k => {
+                        rng.backing(&mut backing);
+                        declared.push(ParsedDeclared {
+                            capability: *cap,
+                            status: if k == 2 {
+                                Status::Available
+                            } else {
+                                Status::Preview
+                            },
+                            backing: backing.clone(),
+                        });
+                    }
+                }
+            }
+            // shuffle the declaration order: the encoding must not care
+            for i in (1..declared.len()).rev() {
+                let j = rng.below(i as u64 + 1) as usize;
+                declared.swap(i, j);
+            }
+            let m = ParsedManifest {
+                model: model.clone(),
+                firmware: firmware.clone(),
+                chip,
+                declared,
+            };
+            let n = m.encode(&mut buf).unwrap();
+            assert_eq!(n, m.encoded_len());
+            let back = ParsedManifest::parse(&buf[..n]).unwrap();
+            assert_eq!(back.model, m.model);
+            assert_eq!(back.firmware, m.firmware);
+            assert_eq!(back.chip, m.chip);
+            assert_eq!(back.declared.len(), m.declared.len());
+            let k = back.encode(&mut again).unwrap();
+            assert_eq!(&again[..k], &buf[..n], "re-encoding is byte-identical");
+            assert_eq!(back.to_bytes().unwrap(), &buf[..n]);
+            for d in &m.declared {
+                assert_eq!(back.has(d.capability), d.status == Status::Available);
+            }
+        }
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn parse_agrees_with_the_borrowed_form_and_refuses_the_rest() {
+        let m = manifest();
+        let mut buf = [0u8; 512];
+        let n = m.encode(&mut buf).unwrap();
+        let p = Manifest::parse(&buf[..n]).unwrap();
+        assert_eq!(p.model, m.model);
+        assert_eq!(p.chip, m.chip);
+        assert_eq!(p.declared.len(), m.declared.len());
+        assert_eq!(p.to_bytes().unwrap(), &buf[..n]);
+        // corruption never panics; the canonical form is the only form
+        let mut rng = Lcg(7);
+        for _ in 0..2000 {
+            let mut bytes = buf[..n].to_vec();
+            match rng.below(3) {
+                0 => {
+                    let i = rng.below(bytes.len() as u64) as usize;
+                    bytes[i] = rng.below(256) as u8;
+                }
+                1 => {
+                    let cut = rng.below(bytes.len() as u64) as usize;
+                    bytes.truncate(cut);
+                }
+                _ => {
+                    let i = rng.below(bytes.len() as u64) as usize;
+                    bytes.insert(i, b'\n');
+                }
+            }
+            if let Ok(again) = ParsedManifest::parse(&bytes) {
+                // anything accepted must re-encode to what was accepted
+                assert_eq!(again.to_bytes().unwrap(), bytes);
+            }
+        }
+        let cases: [(&[u8], Error); 6] = [
+            (b"janus/2\nmodel=a\nfw=1\nchip=esp32\n", Error::Unsupported),
+            (
+                b"janus/1\nmodel=a\nfw=1\nchip=esp8266\n",
+                Error::Unsupported,
+            ),
+            (
+                b"janus/1\nmodel=a\nfw=1\nchip=esp32\ncap=warp.drive:available:x\n",
+                Error::Unsupported,
+            ),
+            (
+                b"janus/1\nfw=1\nmodel=a\nchip=esp32\n",
+                Error::InvalidFormat,
+            ),
+            (b"janus/1\nmodel=a\nfw=1\nchip=esp32", Error::InvalidFormat),
+            (
+                b"janus/1\nmodel=a\nfw=1\nchip=esp32\ncap=gpio:available:x\ncap=gpio:planned:\n",
+                Error::InvalidFormat,
+            ),
+        ];
+        for (bytes, err) in cases {
+            assert_eq!(
+                ParsedManifest::parse(bytes).err(),
+                Some(err),
+                "{:?}",
+                core::str::from_utf8(bytes)
+            );
+        }
     }
 
     #[test]

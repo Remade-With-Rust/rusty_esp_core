@@ -78,8 +78,8 @@ cap=mid.device:preview:rusty_esp_mid
 | Milestone | Adds | Driven by | Kill test |
 |---|---|---|---|
 | **C0** (done) | everything in §3 | J0 | 19 host tests; `--no-default-features` and `--features alloc` on both riscv32 targets |
-| **C1** | `Manifest::parse` (host side, `alloc`), `Chip::parse`; `MediaPacket<'a>` (codec, key/delta, timestamp, bytes) promoted from `rusty_esp_video-core` once audio needs it too; a `FrameMut<'a>` for in-place ops | J1 | round-trip `encode → parse → encode` byte-identical over a fuzz corpus |
-| **C2** | `WallOffset` (the host's one-shot device→wall mapping with a confidence, per the "a component that cannot answer must say so" rule) | J3 | an unsynchronised device reports infinite error, never `0` |
+| **C1** ✅ 2026-09-02 | `Manifest::parse` → `ParsedManifest` (owned, `alloc`; strict canonical form, `Unsupported` for a newer version or an unknown tag), `Chip::parse` + `Chip::ALL`; `MediaPacket<'a>` + `Codec` promoted from `rusty_esp_video-core` into `media` (video re-exports them); `FrameMut<'a>` / `PlaneMut` / `PlanesMut` for in-place ops with `as_frame()` | J1 | **passed:** 400 generated manifests (every chip, random declaration subsets and order, random fields) encode → parse → encode byte-identical; 2 000 corruptions of a real manifest never panic and anything accepted re-encodes to itself; version / tag / order / duplicate refusals each named |
+| **C2** ✅ 2026-09-02 | `time::WallOffset`: the host's one-shot device→wall mapping from a send / device-reading / receive triple, error = half the round trip, `error_at(device, ppm)` for drift, `better()` keeps the smaller error | J3 | **passed:** `WallOffset::UNKNOWN` maps nothing and reports `error_us() == None` (infinite), never zero; a 40 µs round trip places the device reading mid-way with a 20 µs bound |
 | **C3** | `dsp` hoisting rule executed: the first kernel two `-core` crates both carry (likely `dot_i16`, `sad8x8`, a biquad) moves to `rusty_esp_dsp`, scalar oracle first | J5 | byte-identical PIE vs scalar on S3 |
 | **C4** | 1.0.0: format frozen; `FORMAT_VERSION` bump discipline documented (accept-both reader ships one release before any writer change) | J6 | `use-protection-please` table complete |
 
@@ -108,3 +108,6 @@ cap=mid.device:preview:rusty_esp_mid
 | 2026-09-01 | Manifest encoding is line-oriented text, not JSON/postcard: signable without `alloc`, readable by a human on a serial console. |
 | 2026-09-01 | No allocator, no `serde`, no async in Layer 0. |
 | 2026-09-01 | The host `Rng` is named `InsecureTestRng` so it cannot be mistaken for a key source. |
+| 2026-09-02 | **`parse` is strict.** The manifest's canonical form is what the signature covers, so the parser accepts exactly that form and re-encodes to the same bytes; a newer format version or an unknown capability tag is `Unsupported`, not a partial read. A host keeps the bytes it received for the signature check. |
+| 2026-09-02 | **An unknown wall offset is infinite, not zero.** `WallOffset::UNKNOWN` answers `None` for every mapping and for its error; only a measured exchange produces numbers, and the number carries its bound. |
+| 2026-09-02 | `MediaPacket` moved here the day the mesh and the video transport both needed it; `rusty_esp_video_core::packet` re-exports it so no call site changed. |

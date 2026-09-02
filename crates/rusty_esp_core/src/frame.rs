@@ -284,9 +284,181 @@ impl<'a> Frame<'a> {
     }
 }
 
+/// A mutable plane over caller memory.
+#[derive(Debug)]
+pub struct PlaneMut<'a> {
+    /// The bytes, row-major, `stride` bytes per row.
+    pub data: &'a mut [u8],
+    /// Bytes from one row to the next.
+    pub stride: usize,
+}
+
+impl<'a> PlaneMut<'a> {
+    /// The same bounds as [`Plane::new`].
+    pub fn new(data: &'a mut [u8], stride: usize, rows: usize, row_bytes: usize) -> Result<Self> {
+        Plane::new(data, stride, rows, row_bytes)?;
+        Ok(PlaneMut { data, stride })
+    }
+
+    /// Row `index`, mutable.
+    #[must_use]
+    pub fn row_mut(&mut self, index: usize) -> Option<&mut [u8]> {
+        let start = index.checked_mul(self.stride)?;
+        let end = start.checked_add(self.stride)?;
+        self.data.get_mut(start..end)
+    }
+
+    /// A read-only view.
+    #[must_use]
+    pub fn as_plane(&self) -> Plane<'_> {
+        Plane {
+            data: self.data,
+            stride: self.stride,
+        }
+    }
+}
+
+/// Mutable planes.
+#[derive(Debug)]
+pub enum PlanesMut<'a> {
+    /// One buffer: packed pixels or coded bytes.
+    Packed(&'a mut [u8]),
+    /// Three planes.
+    Planar {
+        /// Luma.
+        y: PlaneMut<'a>,
+        /// Cb.
+        u: PlaneMut<'a>,
+        /// Cr.
+        v: PlaneMut<'a>,
+    },
+}
+
+/// A frame whose memory is being written or transformed in place: what a
+/// source fills, a scaler or a colour conversion works on, before the
+/// read-only [`Frame`] view moves down the pipeline.
+#[derive(Debug)]
+pub struct FrameMut<'a> {
+    /// Dimensions and format.
+    pub geometry: Geometry,
+    /// Capture instant.
+    pub timestamp: Micros,
+    /// Frame counter.
+    pub sequence: u32,
+    /// The pixels.
+    pub planes: PlanesMut<'a>,
+}
+
+impl<'a> FrameMut<'a> {
+    /// A packed frame over `data`, with the same checks as [`Frame::packed`]
+    /// except the JPEG-magic check (the bytes are about to be written).
+    pub fn packed(
+        geometry: Geometry,
+        timestamp: Micros,
+        sequence: u32,
+        data: &'a mut [u8],
+    ) -> Result<Self> {
+        if geometry.format.is_planar() {
+            return Err(Error::InvalidGeometry);
+        }
+        if let Some(needed) = geometry.byte_len() {
+            if data.len() < needed {
+                return Err(Error::BufferTooSmall { needed });
+            }
+        }
+        Ok(FrameMut {
+            geometry,
+            timestamp,
+            sequence,
+            planes: PlanesMut::Packed(data),
+        })
+    }
+
+    /// A planar 4:2:0 frame over three buffers, as [`Frame::yuv420p`].
+    pub fn yuv420p(
+        geometry: Geometry,
+        timestamp: Micros,
+        sequence: u32,
+        y: (&'a mut [u8], usize),
+        u: (&'a mut [u8], usize),
+        v: (&'a mut [u8], usize),
+    ) -> Result<Self> {
+        if geometry.format != PixelFormat::Yuv420p {
+            return Err(Error::InvalidGeometry);
+        }
+        let (w, h) = (geometry.width as usize, geometry.height as usize);
+        let y = PlaneMut::new(y.0, y.1, h, w)?;
+        let u = PlaneMut::new(u.0, u.1, h / 2, w / 2)?;
+        let v = PlaneMut::new(v.0, v.1, h / 2, w / 2)?;
+        Ok(FrameMut {
+            geometry,
+            timestamp,
+            sequence,
+            planes: PlanesMut::Planar { y, u, v },
+        })
+    }
+
+    /// The read-only view, for handing on once the writing is done. A
+    /// packed compressed frame is checked for its magic here, as
+    /// [`Frame::packed`] does.
+    pub fn as_frame(&self) -> Result<Frame<'_>> {
+        match &self.planes {
+            PlanesMut::Packed(data) => {
+                Frame::packed(self.geometry, self.timestamp, self.sequence, data)
+            }
+            PlanesMut::Planar { y, u, v } => Ok(Frame {
+                geometry: self.geometry,
+                timestamp: self.timestamp,
+                sequence: self.sequence,
+                planes: Planes::Planar {
+                    y: y.as_plane(),
+                    u: u.as_plane(),
+                    v: v.as_plane(),
+                },
+            }),
+        }
+    }
+
+    /// The packed bytes, mutable, when the frame is packed.
+    #[must_use]
+    pub fn packed_mut(&mut self) -> Option<&mut [u8]> {
+        match &mut self.planes {
+            PlanesMut::Packed(data) => Some(data),
+            PlanesMut::Planar { .. } => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn frame_mut_is_written_then_viewed() {
+        let g = Geometry::new(4, 2, PixelFormat::Rgb888).unwrap();
+        let mut buf = [0u8; 4 * 2 * 3];
+        let mut f = FrameMut::packed(g, Micros(5), 9, &mut buf).unwrap();
+        f.packed_mut().unwrap().fill(0x42);
+        let view = f.as_frame().unwrap();
+        assert_eq!(view.byte_len(), 24);
+        assert!(matches!(view.planes, Planes::Packed(d) if d.iter().all(|&b| b == 0x42)));
+        assert!(FrameMut::packed(g, Micros(0), 0, &mut [0u8; 10]).is_err());
+        let gy = Geometry::new(4, 2, PixelFormat::Yuv420p).unwrap();
+        let (mut y, mut u, mut v) = ([0u8; 8], [0u8; 2], [0u8; 2]);
+        let mut p =
+            FrameMut::yuv420p(gy, Micros(1), 1, (&mut y, 4), (&mut u, 2), (&mut v, 2)).unwrap();
+        if let PlanesMut::Planar { y, .. } = &mut p.planes {
+            y.row_mut(1).unwrap().fill(7);
+        }
+        let view = p.as_frame().unwrap();
+        assert_eq!(view.byte_len(), 12);
+        if let Planes::Planar { y, .. } = view.planes {
+            assert_eq!(y.row(1).unwrap(), &[7, 7, 7, 7]);
+        } else {
+            panic!("planar");
+        }
+        assert!(p.packed_mut().is_none());
+    }
 
     #[test]
     fn geometry_byte_lengths() {
