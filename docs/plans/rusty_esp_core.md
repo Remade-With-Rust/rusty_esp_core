@@ -111,3 +111,14 @@ cap=mid.device:preview:rusty_esp_mid
 | 2026-09-02 | **`parse` is strict.** The manifest's canonical form is what the signature covers, so the parser accepts exactly that form and re-encodes to the same bytes; a newer format version or an unknown capability tag is `Unsupported`, not a partial read. A host keeps the bytes it received for the signature check. |
 | 2026-09-02 | **An unknown wall offset is infinite, not zero.** `WallOffset::UNKNOWN` answers `None` for every mapping and for its error; only a measured exchange produces numbers, and the number carries its bound. |
 | 2026-09-02 | `MediaPacket` moved here the day the mesh and the video transport both needed it; `rusty_esp_video_core::packet` re-exports it so no call site changed. |
+
+## The no-panic gate (host, 2026-09-02)
+
+`tests/no_panic.rs`: every parser this crate exposes takes random bytes from
+an LCG and mutations of a valid encoding under `catch_unwind` — `Manifest::parse`
+and `ParsedManifest::parse` (30 000 inputs), the three tag parsers (30 000
+strings), `WallOffset::from_exchange` and `to_wall` (100 000 triples including
+`0` and `u64::MAX`). **One finding, fixed:** `from_exchange` subtracted in `i64`
+and overflowed for clock readings near `u64::MAX`; it now subtracts in `i128`
+and reports an unrepresentable offset as `InvalidFormat`. The same gate runs in
+every function package; each ledger has its row.
