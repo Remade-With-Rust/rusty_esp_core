@@ -122,3 +122,38 @@ strings), `WallOffset::from_exchange` and `to_wall` (100 000 triples including
 and overflowed for clock readings near `u64::MAX`; it now subtracts in `i128`
 and reports an unrepresentable offset as `InvalidFormat`. The same gate runs in
 every function package; each ledger has its row.
+
+## FORMAT_VERSION discipline (C4's written half, 2026-09-02)
+
+Every byte format a Janus device emits carries a version in its first
+bytes, and today every one of them is at 1: the manifest's `janus/1` line
+(`rusty_esp_core::FORMAT_VERSION`), the iroh ticket and binding (`VERSION`),
+the adoption (`ADOPTION_VERSION`), the kms envelopes (`ENVELOPE_VERSION`),
+the link envelope and the LoRa beacon (`VERSION`, `Beacon::VER`). The
+readers already do the first half of the rule: a version they do not know is
+`Unsupported`, never guessed (`ParsedManifest::parse` on `janus/2`, tested).
+
+The rule for changing any of them, from the day 1.0.0 ships:
+
+1. **Readers move first.** A reader that accepts both the current version
+   and the next one ships — to every device and every host in the field —
+   one release before any writer emits the next version. Nothing on the
+   wire changes in that release.
+2. **Writers move on the release after**, and only once the accept-both
+   reader is the oldest thing still deployed. A writer that emits a version
+   some fielded reader refuses has broken the family, whatever the changelog
+   says.
+3. **Old readers stay strict.** An unknown version is refused, as now. The
+   accept-both reader is the only place two versions meet, and it is
+   temporary: the release after the writer moves drops the old arm.
+4. **A new tag inside a version is a new version.** The manifest's strict
+   canonical parse refuses unknown tags on purpose, because a device's
+   declared capabilities are what it is signing; extending the vocabulary is
+   a `FORMAT_VERSION` bump, not a lenient parser.
+5. **The no-panic gate and the oracle tests run on both arms** of an
+   accept-both reader, with a corpus of the old version's bytes kept in the
+   repo until the old arm is dropped.
+
+What C4 still waits for: J6, the freeze itself — 1.0.0 tags on the eight
+packages with the table in the umbrella's `use-protection-please` section
+as the checklist, and this rule in the release notes of every one.
