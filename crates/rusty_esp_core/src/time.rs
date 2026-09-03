@@ -92,8 +92,13 @@ impl WallOffset {
         }
         let rtt = host_recv_us - host_send_us;
         let mid = host_send_us + rtt / 2;
+        // Wide arithmetic: a clock reading near `u64::MAX` on either side is
+        // garbage, not a reason to overflow. An offset outside `i64` is the
+        // same garbage, reported as such.
+        let offset = i128::from(mid) - i128::from(device_us.0);
+        let offset_us = i64::try_from(offset).map_err(|_| crate::error::Error::InvalidFormat)?;
         Ok(WallOffset {
-            offset_us: mid as i64 - device_us.0 as i64,
+            offset_us,
             error_us: Some(rtt.div_ceil(2)),
             measured_at: device_us,
         })

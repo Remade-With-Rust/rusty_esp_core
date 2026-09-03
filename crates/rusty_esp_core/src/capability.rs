@@ -695,23 +695,31 @@ mod tests {
 
     #[test]
     fn honesty_rule() {
-        assert!(Declared::available(Capability::Gpio, "x")
-            .validate()
-            .is_ok());
-        assert!(Declared::available(Capability::Gpio, "")
-            .validate()
-            .is_err());
+        assert!(
+            Declared::available(Capability::Gpio, "x")
+                .validate()
+                .is_ok()
+        );
+        assert!(
+            Declared::available(Capability::Gpio, "")
+                .validate()
+                .is_err()
+        );
         assert!(Declared::planned(Capability::Gpio).validate().is_ok());
-        assert!(Declared {
-            capability: Capability::Gpio,
-            status: Status::Planned,
-            backing: "x",
-        }
-        .validate()
-        .is_err());
-        assert!(Declared::available(Capability::Gpio, "bad crate")
+        assert!(
+            Declared {
+                capability: Capability::Gpio,
+                status: Status::Planned,
+                backing: "x",
+            }
             .validate()
-            .is_err());
+            .is_err()
+        );
+        assert!(
+            Declared::available(Capability::Gpio, "bad crate")
+                .validate()
+                .is_err()
+        );
     }
 
     #[test]
