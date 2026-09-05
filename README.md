@@ -18,6 +18,7 @@ boundaries, so a camera frame flows into an encoder and onto the mesh with no
 conversion and no copy.
 
 - This package's plan: [docs/plans/rusty_esp_core.md](docs/plans/rusty_esp_core.md)
+- Every number: [docs/LEDGER.md](docs/LEDGER.md)
 - The family plan: Janus `docs/plans/janus-mission.md` (umbrella repo)
 
 **Claims discipline:** this README makes no performance or capability claim
