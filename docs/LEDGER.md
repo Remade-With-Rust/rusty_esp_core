@@ -27,3 +27,42 @@ number when a chip signs one (the M1 row in the umbrella's
 Not run: anything on a chip. `Micros`, `Clock`, `Rng` and `Kv` are traits
 here; their first numbers belong to the `-esp` backends that implement them
 (`rusty_esp_mid`'s `EspRng` and `EspNvsKv`) on a board.
+
+## The `Rng` seam's real source: a megabyte from an ESP32-S3 (2026-09-06)
+
+The seam has always been fed by `esp_hal`'s generator on a chip and by a
+deterministic generator in tests, and nothing had ever judged the chip's
+output. `rusty_esp_dsp/firmware/xiao-s3-probe --features rngdump` emits
+**1 048 576 bytes** from the hardware generator on a Seeed XIAO ESP32-S3
+Sense, as 16 384 hex lines over the USB serial link.
+
+The source matters and is named in the code: `TrngSource::new(peripherals.RNG,
+peripherals.ADC1)`. Without that, `RNG` on an ESP32 is a pseudo-random
+register and only the ADC-backed path is a true generator; the firmware
+takes `Trng::try_new()` and refuses to dump if it is unavailable.
+
+`ent` is not installed on this machine, so its five statistics were
+implemented in `ent.py`. **A reimplementation is weaker evidence than the
+tool**, so the script runs a **control arm** over the same number of bytes
+from the operating system's own generator: if the implementation were
+wrong, both columns would be wrong the same way, and the chip's column only
+means something beside a known-good one.
+
+| statistic | ideal | **the chip** | control (`os.urandom`) |
+|---|---:|---:|---:|
+| entropy, bits/byte | 8.000000 | **7.999828** | 7.999837 |
+| chi-square, 255 dof | ~255 | **249.7** | 237.6 |
+| arithmetic mean | 127.5 | **127.6303** | 127.3892 |
+| Monte Carlo pi error | 0 % | **0.0195 %** | 0.3462 % |
+| serial correlation | 0 | **+0.001096** | +0.000932 |
+
+**The chip is indistinguishable from the control on every statistic**, and
+on two of the five it is nearer the ideal — which is what a fair coin looks
+like, not evidence of superiority. Chi-square at 249.7 sits close to the
+centre of its distribution; a generator with structure would fail here
+first and loudly.
+
+This is a smoke test, not a certification: five statistics over one
+megabyte from one part at one temperature. It is enough to say the seam is
+fed real entropy on this hardware, and not enough to say anything about the
+generator's design.
