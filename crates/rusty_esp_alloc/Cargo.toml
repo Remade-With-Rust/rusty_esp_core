@@ -1,0 +1,41 @@
+# The allocator seam. One crate holds the pin and the bare-metal region, so no
+# deliverable in the family names `rusty_alloc` directly and no library ever
+# does.
+#
+# Why a seam at all: the house standard adopts rusty_alloc through one crate so
+# the exact pin, the profile and the startup shape are decided once. A `0.x`
+# or freshly-major dependency named in twenty places is twenty places to edit
+# when it moves.
+
+[package]
+name = "rusty_esp_alloc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "The Janus allocator seam: rusty_alloc as the global allocator, with the fixed region a chip needs."
+
+[features]
+# Hosted deliverables (the espino CLI) keep `std`; a firmware takes
+# `default-features = false` and gets rusty_alloc's single-heap no_std profile.
+default = ["std"]
+std = ["rusty_alloc-api/std", "rusty_alloc/std"]
+# Full invariant checking. Debug profiles only — it is not free.
+debug_checks = ["rusty_alloc-api/debug_checks", "rusty_alloc/debug_checks"]
+# Guard pages, encrypted free lists, guarded-object sampling. For anything
+# exposed to untrusted input.
+secure = ["rusty_alloc-api/secure", "rusty_alloc/secure"]
+
+[dependencies]
+# EXACT pins, and the reason they are exact: 2.0.0 froze the API, but every
+# release at 0.3.2 and earlier carries use-after-frees on all targets, so a
+# range that could ever resolve backwards is not worth writing. This is the one
+# crate in the family allowed to name these.
+rusty_alloc-api = { version = "=2.0.0", default-features = false }
+rusty_alloc = { version = "=2.0.0", default-features = false }
+
+[lints]
+workspace = true
