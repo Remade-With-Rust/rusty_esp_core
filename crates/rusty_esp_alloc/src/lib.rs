@@ -134,16 +134,65 @@ pub struct Region<const N: usize> {
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 unsafe impl<const N: usize> Sync for Region<N> {}
 
+/// The backend's own page granule. It is private upstream, so this mirrors it;
+/// asking for it to be public is item 1 of
+/// `rusty_alloc/docs/plans/embedded-adoption.md`.
+#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
+const BACKEND_PAGE: usize = 4096;
+
+/// The smallest region that can serve a single allocation.
+///
+/// The layers above carve the region into `SEGMENT_SIZE` granules, so a region
+/// smaller than one segment plus the backend's page yields **zero** segments
+/// and every allocation fails -- while `init_region` still returns `Ok` and the
+/// build stays clean. That is not hypothetical: it is what a firmware gets by
+/// setting `ra_single_threaded` (which the crate demands) and not
+/// `ra_small_profile` (which nothing demands), leaving a 32 MiB segment.
+#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
+pub const MIN_REGION: usize = BACKEND_PAGE + rusty_alloc::types::SEGMENT_SIZE;
+
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 impl<const N: usize> Region<N> {
+    /// Refuse a region too small to yield one segment, at compile time.
+    ///
+    /// This is the check the allocator cannot make for us today, and it is
+    /// worth having as an assert rather than a runtime `Err`: the answer is
+    /// known when the firmware is built, and a board run is expensive.
+    const GEOMETRY_FITS: () = assert!(
+        N >= MIN_REGION,
+        concat!(
+            "this heap is smaller than one allocator segment, so it would ",
+            "yield none and every allocation would fail. Either raise it, or ",
+            "set --cfg ra_small_profile in .cargo/config.toml, which takes ",
+            "the segment from 32 MiB to 64 KiB."
+        )
+    );
+
     /// Reserve `N` bytes. `const`, so this is a `static` and the bytes are in
     /// the image's BSS rather than on anybody's stack.
     #[must_use]
     pub const fn new() -> Self {
+        // forces the assert above to be evaluated for this N
+        let () = Self::GEOMETRY_FITS;
         Region {
             cell: core::cell::UnsafeCell::new([0; N]),
             given: core::sync::atomic::AtomicBool::new(false),
         }
+    }
+
+    /// Bytes of `N` the allocator can actually serve from.
+    ///
+    /// A region yields `floor((N - page) / SEGMENT_SIZE)` segments and strands
+    /// the remainder, so a round number like 220 KiB loses 24 KiB to a 64 KiB
+    /// granule. Report this beside the budget and the gap stops being a
+    /// surprise.
+    #[must_use]
+    pub const fn usable(&self) -> usize {
+        let seg = rusty_alloc::types::SEGMENT_SIZE;
+        if N < MIN_REGION {
+            return 0;
+        }
+        ((N - BACKEND_PAGE) / seg) * seg
     }
 
     /// Hand the region to the allocator. Call once, before the first
