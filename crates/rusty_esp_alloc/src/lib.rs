@@ -91,12 +91,26 @@ pub use rusty_alloc_api::RustyAlloc as Alloc;
 pub use rusty_alloc_api::VERSION;
 
 /// What can go wrong handing over a region.
+///
+/// The three backend refusals are kept apart because they have three
+/// different fixes, which is the distinction rusty_alloc 2.0.1 added after
+/// this seam collapsed them into one and had to guess.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Error {
-    /// [`Region::give`] was called twice. The allocator takes its memory once.
+    /// [`Region::give`] was called twice on this region. It takes its memory
+    /// once; a second call is refused rather than aliasing the first.
     AlreadyGiven,
-    /// The backend refused: the region is smaller than one page of its
-    /// bookkeeping, or another region is already registered.
+    /// Smaller than the backend's own bookkeeping page. Raise the budget.
+    TooSmall,
+    /// Too small to hold one segment **at the active geometry**, so the
+    /// allocator above could never serve anything. Almost always one missing
+    /// flag: without `--cfg ra_small_profile` a segment is 32 MiB.
+    Geometry,
+    /// Another region is already registered with the backend. There is one
+    /// heap per program, and something else claimed it.
+    AlreadyRegistered,
+    /// The backend refused for a reason this seam does not recognise, which
+    /// means it grew a code we have not mapped.
     Refused,
 }
 
@@ -104,7 +118,12 @@ impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Error::AlreadyGiven => f.write_str("the heap region was already given"),
-            Error::Refused => f.write_str("the allocator refused the region (too small?)"),
+            Error::TooSmall => f.write_str("the heap is smaller than the allocator's own page"),
+            Error::Geometry => f.write_str(
+                "the heap cannot hold one segment at this geometry; set --cfg ra_small_profile",
+            ),
+            Error::AlreadyRegistered => f.write_str("a heap region is already registered"),
+            Error::Refused => f.write_str("the allocator refused the region"),
         }
     }
 }
@@ -134,22 +153,19 @@ pub struct Region<const N: usize> {
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 unsafe impl<const N: usize> Sync for Region<N> {}
 
-/// The backend's own page granule. It is private upstream, so this mirrors it;
-/// asking for it to be public is item 1 of
-/// `rusty_alloc/docs/plans/embedded-adoption.md`.
-#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-const BACKEND_PAGE: usize = 4096;
-
-/// The smallest region that can serve a single allocation.
+/// The smallest region that can serve a single allocation, for a
+/// segment-aligned base.
 ///
-/// The layers above carve the region into `SEGMENT_SIZE` granules, so a region
-/// smaller than one segment plus the backend's page yields **zero** segments
-/// and every allocation fails -- while `init_region` still returns `Ok` and the
-/// build stays clean. That is not hypothetical: it is what a firmware gets by
-/// setting `ra_single_threaded` (which the crate demands) and not
-/// `ra_small_profile` (which nothing demands), leaving a 32 MiB segment.
+/// Re-exported rather than mirrored: this seam used to carry its own copy of
+/// the arithmetic and a hardcoded page size, because upstream kept both
+/// private. 2.0.1 made them public, so there is now one definition and it is
+/// theirs.
+///
+/// Why it matters: the layers above carve the region into `SEGMENT_SIZE`
+/// granules, so a region below one segment yields **zero** and every
+/// allocation fails. On 2.0.0 that linked clean and failed on the board.
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-pub const MIN_REGION: usize = BACKEND_PAGE + rusty_alloc::types::SEGMENT_SIZE;
+pub use rusty_alloc::prim::fixed::MIN_REGION;
 
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 impl<const N: usize> Region<N> {
@@ -159,7 +175,7 @@ impl<const N: usize> Region<N> {
     /// worth having as an assert rather than a runtime `Err`: the answer is
     /// known when the firmware is built, and a board run is expensive.
     const GEOMETRY_FITS: () = assert!(
-        N >= MIN_REGION,
+        rusty_alloc::prim::fixed::usable_bytes(0, N) > 0,
         concat!(
             "this heap is smaller than one allocator segment, so it would ",
             "yield none and every allocation would fail. Either raise it, or ",
@@ -180,19 +196,23 @@ impl<const N: usize> Region<N> {
         }
     }
 
-    /// Bytes of `N` the allocator can actually serve from.
+    /// Bytes of `N` the allocator can actually serve from, for this region's
+    /// real base address.
     ///
-    /// A region yields `floor((N - page) / SEGMENT_SIZE)` segments and strands
-    /// the remainder, so a round number like 220 KiB loses 24 KiB to a 64 KiB
-    /// granule. Report this beside the budget and the gap stops being a
+    /// A region yields whole `SEGMENT_SIZE` granules and strands the
+    /// remainder, so a round number like 220 KiB loses 24 KiB to a 64 KiB
+    /// granule. Report it beside the budget and the gap stops being a
     /// surprise.
+    ///
+    /// The base matters and this seam's first version got it wrong by using
+    /// the length alone: an unaligned base can need up to `SEGMENT_SIZE - 1`
+    /// more than a length test would demand, so a length-only answer is
+    /// optimistic. Upstream's `usable_bytes` takes the base, and this defers
+    /// to it.
     #[must_use]
-    pub const fn usable(&self) -> usize {
-        let seg = rusty_alloc::types::SEGMENT_SIZE;
-        if N < MIN_REGION {
-            return 0;
-        }
-        ((N - BACKEND_PAGE) / seg) * seg
+    pub fn usable(&self) -> usize {
+        let base = self.cell.get() as usize;
+        rusty_alloc::prim::fixed::usable_bytes(base, N)
     }
 
     /// Hand the region to the allocator. Call once, before the first
@@ -211,7 +231,15 @@ impl<const N: usize> Region<N> {
         // `&'static`, so the bytes live for the program and the `&'static mut`
         // this produces is the only reference to them.
         let bytes: &'static mut [u8] = unsafe { &mut *self.cell.get() };
-        rusty_alloc::prim::fixed::init_region(bytes).map_err(|_| Error::Refused)
+        rusty_alloc::prim::fixed::init_region(bytes).map_err(|e| {
+            use rusty_alloc::prim::fixed as fx;
+            match e {
+                fx::FERR_TOO_SMALL => Error::TooSmall,
+                fx::FERR_GEOMETRY => Error::Geometry,
+                fx::FERR_REGISTERED => Error::AlreadyRegistered,
+                _ => Error::Refused,
+            }
+        })
     }
 
     /// The region's size in bytes, for a firmware that wants to report its own
@@ -259,6 +287,34 @@ mod tests {
             "the heap region was already given"
         );
         assert!(Error::Refused.to_string().contains("refused"));
+        // The geometry refusal has to name the flag. It is the one failure a
+        // firmware author cannot diagnose from the symptom -- on 2.0.0 it was
+        // a clean build that failed every allocation on the board.
+        assert!(
+            Error::Geometry.to_string().contains("ra_small_profile"),
+            "{}",
+            Error::Geometry
+        );
+        assert!(Error::TooSmall.to_string().contains("smaller"));
+        assert!(
+            Error::AlreadyRegistered
+                .to_string()
+                .contains("already registered")
+        );
+        // All five are distinct, or a caller cannot act on them.
+        let all = [
+            Error::AlreadyGiven,
+            Error::TooSmall,
+            Error::Geometry,
+            Error::AlreadyRegistered,
+            Error::Refused,
+        ];
+        for (i, a) in all.iter().enumerate() {
+            for b in &all[i + 1..] {
+                assert_ne!(a, b);
+                assert_ne!(a.to_string(), b.to_string());
+            }
+        }
     }
 
     #[test]
