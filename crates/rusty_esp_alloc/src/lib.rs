@@ -139,51 +139,28 @@ impl core::fmt::Display for Error {
 /// module's note on which allocator to use. Below about 68 KiB on an ESP32-S3
 /// a real workload starts being refused, so a firmware that cannot spare that
 /// should stay on `esp-alloc`.
-/// Aligned to a segment, and that is load-bearing rather than tidy.
+/// The heap region, re-exported from the allocator rather than built here.
 ///
-/// The allocator carves the region into `SEGMENT_SIZE`-ALIGNED segments, so an
-/// unaligned base throws away everything up to the first boundary -- up to
-/// 65,535 bytes. A plain `[u8; N]` has alignment 1, so where it lands is the
-/// linker's choice and the usable size is not a function of `N` at all.
+/// This seam carried its own container until 2.0.4 shipped one. Both of this
+/// crate's attempts at it were wrong in ways the allocator's own type is not,
+/// and both were found on the board rather than in review:
 ///
-/// This was found the expensive way on 2026-09-09. `good_region_size(220 KiB)`
-/// returns 200,704, which is exactly three segments plus the page **for an
-/// aligned base**; sized to precisely that with an unaligned one, the region
-/// held two segments instead of three and the firmware died in
-/// `handle_alloc_error` on its third buffer. The 220 KiB it replaced worked
-/// only because its 24,576 bytes of slack happened to absorb the misalignment.
+/// 1. A plain `[u8; N]` has alignment 1, so the linker placed it anywhere and
+///    a region sized to exactly `good_region_size` served one segment fewer
+///    than its size implied -- a startup panic (2026-09-09).
+/// 2. Adding `#[repr(align(65536))]` fixed that and cost **60,952 bytes of
+///    stack**, because the old sizing rule was `k * SEGMENT_SIZE + FIXED_PAGE`
+///    and aligning a size that is not a whole number of segments rounds it up
+///    to the next one. `free=0` was verified and the section table was not,
+///    which is the exact check this crate's own `.stack` identity exists to
+///    force.
 ///
-/// 64 KiB is the small-profile segment. The default 32 MiB geometry cannot be
-/// aligned in BSS at all, which is one more reason a chip needs
-/// `--cfg ra_small_profile`; `MIN_REGION` already refuses that case.
+/// `prim::fixed::Region` is aligned by construction, checks at compile time
+/// that `N` is whole segments, asserts `size_of::<Region<N>>() == N` so it
+/// cannot be padded, and returns the usable bytes from `give`. There is no
+/// version of this worth maintaining separately.
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-#[repr(align(65536))]
-pub struct Region<const N: usize> {
-    cell: core::cell::UnsafeCell<[u8; N]>,
-    given: core::sync::atomic::AtomicBool,
-}
-
-// SAFETY: the bytes are handed out exactly once, and `given` is what enforces
-// it: the first `give` swaps it true and every later call is refused without
-// touching the cell. Nothing else in this crate reads or writes `cell`, so
-// there is never a second reference to alias the `&'static mut` that call
-// produced.
-#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-unsafe impl<const N: usize> Sync for Region<N> {}
-
-/// The smallest region that can serve a single allocation, for a
-/// segment-aligned base.
-///
-/// Re-exported rather than mirrored: this seam used to carry its own copy of
-/// the arithmetic and a hardcoded page size, because upstream kept both
-/// private. 2.0.1 made them public, so there is now one definition and it is
-/// theirs.
-///
-/// Why it matters: the layers above carve the region into `SEGMENT_SIZE`
-/// granules, so a region below one segment yields **zero** and every
-/// allocation fails. On 2.0.0 that linked clean and failed on the board.
-#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-pub use rusty_alloc::prim::fixed::MIN_REGION;
+pub use rusty_alloc::prim::fixed::Region;
 
 /// The largest region no bigger than `budget` that the 64 KiB granule strands
 /// nothing of, and the smallest region serving at least `usable` bytes.
@@ -194,103 +171,6 @@ pub use rusty_alloc::prim::fixed::MIN_REGION;
 /// with one of these rather than a round number.
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 pub use rusty_alloc::prim::fixed::{good_region_size, region_for};
-
-#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-impl<const N: usize> Region<N> {
-    /// Refuse a region too small to yield one segment, at compile time.
-    ///
-    /// This is the check the allocator cannot make for us today, and it is
-    /// worth having as an assert rather than a runtime `Err`: the answer is
-    /// known when the firmware is built, and a board run is expensive.
-    const GEOMETRY_FITS: () = assert!(
-        rusty_alloc::prim::fixed::usable_bytes(0, N) > 0,
-        concat!(
-            "this heap is smaller than one allocator segment, so it would ",
-            "yield none and every allocation would fail. Either raise it, or ",
-            "set --cfg ra_small_profile in .cargo/config.toml, which takes ",
-            "the segment from 32 MiB to 64 KiB."
-        )
-    );
-
-    /// Reserve `N` bytes. `const`, so this is a `static` and the bytes are in
-    /// the image's BSS rather than on anybody's stack.
-    #[must_use]
-    pub const fn new() -> Self {
-        // forces the assert above to be evaluated for this N
-        let () = Self::GEOMETRY_FITS;
-        Region {
-            cell: core::cell::UnsafeCell::new([0; N]),
-            given: core::sync::atomic::AtomicBool::new(false),
-        }
-    }
-
-    /// Bytes of `N` the allocator can actually serve from, for this region's
-    /// real base address.
-    ///
-    /// A region yields whole `SEGMENT_SIZE` granules and strands the
-    /// remainder, so a round number like 220 KiB loses 24 KiB to a 64 KiB
-    /// granule. Report it beside the budget and the gap stops being a
-    /// surprise.
-    ///
-    /// The base matters and this seam's first version got it wrong by using
-    /// the length alone: an unaligned base can need up to `SEGMENT_SIZE - 1`
-    /// more than a length test would demand, so a length-only answer is
-    /// optimistic. Upstream's `usable_bytes` takes the base, and this defers
-    /// to it.
-    #[must_use]
-    pub fn usable(&self) -> usize {
-        let base = self.cell.get() as usize;
-        rusty_alloc::prim::fixed::usable_bytes(base, N)
-    }
-
-    /// Hand the region to the allocator. Call once, before the first
-    /// allocation; a second call is refused rather than aliasing the first.
-    ///
-    /// # Errors
-    /// [`Error::AlreadyGiven`] on a second call, [`Error::Refused`] if the
-    /// backend will not take it.
-    pub fn give(&'static self) -> Result<(), Error> {
-        use core::sync::atomic::Ordering;
-        if self.given.swap(true, Ordering::SeqCst) {
-            return Err(Error::AlreadyGiven);
-        }
-        // SAFETY: the swap above succeeded, so this is the first and only
-        // call, and no other code in this crate touches `cell`. `self` is
-        // `&'static`, so the bytes live for the program and the `&'static mut`
-        // this produces is the only reference to them.
-        let bytes: &'static mut [u8] = unsafe { &mut *self.cell.get() };
-        rusty_alloc::prim::fixed::init_region(bytes).map_err(|e| {
-            use rusty_alloc::prim::fixed as fx;
-            match e {
-                fx::FERR_TOO_SMALL => Error::TooSmall,
-                fx::FERR_GEOMETRY => Error::Geometry,
-                fx::FERR_REGISTERED => Error::AlreadyRegistered,
-                _ => Error::Refused,
-            }
-        })
-    }
-
-    /// The region's size in bytes, for a firmware that wants to report its own
-    /// budget beside what the allocator says it is using.
-    #[must_use]
-    pub const fn len(&self) -> usize {
-        N
-    }
-
-    /// Whether the region is empty. Present because clippy asks for it beside
-    /// [`Region::len`]; a zero-length region would be refused anyway.
-    #[must_use]
-    pub const fn is_empty(&self) -> bool {
-        N == 0
-    }
-}
-
-#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
-impl<const N: usize> Default for Region<N> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 /// What the allocator has done with the region: `(used, free, total)` bytes.
 ///
