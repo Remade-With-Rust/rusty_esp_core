@@ -139,7 +139,25 @@ impl core::fmt::Display for Error {
 /// module's note on which allocator to use. Below about 68 KiB on an ESP32-S3
 /// a real workload starts being refused, so a firmware that cannot spare that
 /// should stay on `esp-alloc`.
+/// Aligned to a segment, and that is load-bearing rather than tidy.
+///
+/// The allocator carves the region into `SEGMENT_SIZE`-ALIGNED segments, so an
+/// unaligned base throws away everything up to the first boundary -- up to
+/// 65,535 bytes. A plain `[u8; N]` has alignment 1, so where it lands is the
+/// linker's choice and the usable size is not a function of `N` at all.
+///
+/// This was found the expensive way on 2026-09-09. `good_region_size(220 KiB)`
+/// returns 200,704, which is exactly three segments plus the page **for an
+/// aligned base**; sized to precisely that with an unaligned one, the region
+/// held two segments instead of three and the firmware died in
+/// `handle_alloc_error` on its third buffer. The 220 KiB it replaced worked
+/// only because its 24,576 bytes of slack happened to absorb the misalignment.
+///
+/// 64 KiB is the small-profile segment. The default 32 MiB geometry cannot be
+/// aligned in BSS at all, which is one more reason a chip needs
+/// `--cfg ra_small_profile`; `MIN_REGION` already refuses that case.
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
+#[repr(align(65536))]
 pub struct Region<const N: usize> {
     cell: core::cell::UnsafeCell<[u8; N]>,
     given: core::sync::atomic::AtomicBool,
@@ -166,6 +184,16 @@ unsafe impl<const N: usize> Sync for Region<N> {}
 /// allocation fails. On 2.0.0 that linked clean and failed on the board.
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 pub use rusty_alloc::prim::fixed::MIN_REGION;
+
+/// The largest region no bigger than `budget` that the 64 KiB granule strands
+/// nothing of, and the smallest region serving at least `usable` bytes.
+///
+/// Re-exported from 2.0.3, which added them after this consumer measured a
+/// 220 KiB region losing 24,576 bytes to the granule -- three times the
+/// allocator's whole code cost at the time. A firmware should size its heap
+/// with one of these rather than a round number.
+#[cfg(not(any(unix, windows, target_arch = "wasm32")))]
+pub use rusty_alloc::prim::fixed::{good_region_size, region_for};
 
 #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
 impl<const N: usize> Region<N> {
@@ -279,6 +307,23 @@ pub fn occupancy() -> (usize, usize, usize) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The sizing arithmetic, checked against the number this consumer
+    /// measured on the board before the API existed: a 220 KiB budget must
+    /// come back as 200,704 -- three 64 KiB segments plus the 4 KiB page --
+    /// and that region must strand nothing.
+    #[test]
+    #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
+    fn a_good_region_strands_nothing() {
+        const BUDGET: usize = 220 * 1024;
+        assert_eq!(good_region_size(BUDGET), 200_704);
+        assert!(good_region_size(BUDGET) <= BUDGET);
+        assert_eq!(
+            rusty_alloc::prim::fixed::usable_bytes(0, good_region_size(BUDGET)),
+            196_608,
+            "a good region is all segments and one page"
+        );
+    }
 
     #[test]
     fn the_error_messages_say_what_went_wrong() {

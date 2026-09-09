@@ -35,11 +35,11 @@ secure = ["rusty_alloc-api/secure", "rusty_alloc/secure"]
 # range that could ever resolve backwards is not worth writing. This is the one
 # crate in the family allowed to name these.
 #
-# 2.0.1 is the floor for a firmware, not a preference; 2.0.2 is what we run. It is the release that
+# 2.0.1 is the floor for a firmware, not a preference; 2.0.3 is what we run. It is the release that
 # refuses a region too small to hold a segment and turns an allocating
 # interrupt into a panic instead of a silent hang; on 2.0.0 both are quiet.
-rusty_alloc-api = { version = "=2.0.2", default-features = false }
-rusty_alloc = { version = "=2.0.2", default-features = false }
+rusty_alloc-api = { version = "=2.0.3", default-features = false }
+rusty_alloc = { version = "=2.0.3", default-features = false }
 
 [lints]
 workspace = true
