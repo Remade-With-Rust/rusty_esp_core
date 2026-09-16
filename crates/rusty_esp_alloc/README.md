@@ -1,13 +1,18 @@
-# rusty_esp_core-esp
+# rusty_esp_alloc
 
-[![Remade With Rust](https://img.shields.io/badge/Remade%20With-Rust-000?logo=rust&logoColor=fff)](https://github.com/remade-with-rust) [![By Mata Network](https://img.shields.io/badge/by-Mata%20Network-5b2be0)](https://www.mata.network) [![crates.io](https://img.shields.io/crates/v/rusty_esp_core-esp.svg)](https://crates.io/crates/rusty_esp_core-esp) [![docs.rs](https://docs.rs/rusty_esp_core-esp/badge.svg)](https://docs.rs/rusty_esp_core-esp) [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](https://github.com/Remade-With-Rust/rusty_esp_core/blob/main/LICENSE-MIT)
+[![Remade With Rust](https://img.shields.io/badge/Remade%20With-Rust-000?logo=rust&logoColor=fff)](https://github.com/remade-with-rust) [![By Mata Network](https://img.shields.io/badge/by-Mata%20Network-5b2be0)](https://www.mata.network) [![crates.io](https://img.shields.io/crates/v/rusty_esp_alloc.svg)](https://crates.io/crates/rusty_esp_alloc) [![docs.rs](https://docs.rs/rusty_esp_alloc/badge.svg)](https://docs.rs/rusty_esp_alloc) [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](https://github.com/Remade-With-Rust/rusty_esp_core/blob/main/LICENSE-MIT)
 
-The chip backends for the three hardware seams the Janus family is built on — clock, entropy and key-value store. Both tracks, behind one feature flag each.
+The allocator seam: [`rusty_alloc`](https://crates.io/crates/rusty_alloc) as the global allocator, with the fixed region a microcontroller needs. One crate, one pin, one decision — declared in a deliverable and never in a library.
 
-| track | what it is |
-|---|---|
-| **A** | `std` on ESP-IDF — an operating system, Wi-Fi, sockets, threads |
-| **B** | `no_std` on `esp-hal` — bare metal, no heap unless you ask for one |
+Adopting it was one crate and one line, and the first build would have failed **on the board without ever failing to compile**: the allocator's segment was 32 MiB by default and the region was 220 KiB, and nothing checked. That became an upstream report, and five releases in one week followed, each measured on the chip before it was believed:
+
+| | first release | fifth |
+|---|---|---|
+| flash it costs | 16.6 KB | **3.4 KB** |
+| stack it takes | 3,092 B | **4 B** |
+| region stranded by the granule | 24,576 B | **0** |
+
+The middle row is the one a size table cannot show: memory on the part is fixed, so its sections must sum to a constant, and when they did not the missing bytes were the linker's padding — belonging to no section at all.
 
 ## Where the evidence is
 
