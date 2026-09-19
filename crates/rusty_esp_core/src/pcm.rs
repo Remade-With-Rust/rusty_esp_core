@@ -66,6 +66,46 @@ pub fn as_i16_mut(bytes: &mut [u8]) -> Option<&mut [i16]> {
     }
 }
 
+/// [`as_i16`] for 32-bit floats: the other half of every PCM conversion.
+///
+/// Same contract, same reasons to refuse, and the same 4-byte-per-sample
+/// marshalling to avoid -- an `f32` reassembled from a `&[u8]` is FOUR byte
+/// loads plus three shifts and three ors.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_f32(bytes: &[u8]) -> Option<&[f32]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as in `as_i16`. `f32` has no invalid bit patterns -- every
+    // 32-bit word is some float, signalling NaNs included -- so viewing
+    // initialised, correctly-aligned bytes as `f32` is sound. The view is
+    // taken only when nothing was split off either end.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to::<f32>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
+/// [`as_f32`] for a buffer being written.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_f32_mut(bytes: &mut [u8]) -> Option<&mut [f32]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as in `as_f32`, and the `&mut` is exclusive for the lifetime of
+    // the returned slice because it is reborrowed from the caller's.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to_mut::<f32>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
 /// Sample encoding of one channel value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
@@ -226,6 +266,10 @@ mod i16_view {
     /// The view must agree with the byte path it replaces, for every value,
     /// and must REFUSE every case where it would not.
     #[test]
+    // `vec!`, not an array, deliberately: the alignment a HEAP buffer has is
+    // the alignment real PCM has, and a stack array's is not the same
+    // question. clippy cannot see that the allocation is the point.
+    #[allow(clippy::useless_vec)]
     fn agrees_with_from_le_bytes_and_refuses_the_rest() {
         // one extra byte at the front so a deliberately misaligned view is
         // available from the same allocation
@@ -235,19 +279,16 @@ mod i16_view {
         }
         let buf = &raw[1..]; // 64 bytes, alignment unknown but length even
 
-        match as_i16(buf) {
-            Some(v) => {
-                assert_eq!(v.len(), buf.len() / 2);
-                for (k, &s) in v.iter().enumerate() {
-                    assert_eq!(
-                        s,
-                        i16::from_le_bytes([buf[k * 2], buf[k * 2 + 1]]),
-                        "sample {k} disagrees with the byte path"
-                    );
-                }
+        // a refusal is always allowed here; the caller has a byte path
+        if let Some(v) = as_i16(buf) {
+            assert_eq!(v.len(), buf.len() / 2);
+            for (k, &s) in v.iter().enumerate() {
+                assert_eq!(
+                    s,
+                    i16::from_le_bytes([buf[k * 2], buf[k * 2 + 1]]),
+                    "sample {k} disagrees with the byte path"
+                );
             }
-            // a refusal is always allowed; the caller has a byte path
-            None => {}
         }
 
         // odd length is never viewable
@@ -271,13 +312,11 @@ mod i16_view {
         let vals: [i16; 8] = [0, -1, 1, i16::MIN, i16::MAX, -12345, 30000, -30000];
 
         let mut via_view = vec![0u8; 16];
-        let ok = match as_i16_mut(&mut via_view) {
-            Some(v) => {
-                v.copy_from_slice(&vals);
-                true
-            }
-            None => false,
-        };
+        let mut ok = false;
+        if let Some(v) = as_i16_mut(&mut via_view) {
+            v.copy_from_slice(&vals);
+            ok = true;
+        }
 
         let mut via_bytes = vec![0u8; 16];
         for (k, &x) in vals.iter().enumerate() {
