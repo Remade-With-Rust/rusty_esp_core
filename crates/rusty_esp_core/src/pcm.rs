@@ -8,6 +8,64 @@
 use crate::error::{Error, Result};
 use crate::time::Micros;
 
+/// A byte buffer viewed as `&[i16]`, or `None` when it cannot be.
+///
+/// Interleaved 16-bit PCM arrives as bytes -- that is what a DMA ring hands
+/// over and what [`PcmBlock`] carries -- but every kernel that reads it wants
+/// samples. Reassembling each one with `i16::from_le_bytes([b[0], b[1]])`
+/// costs two byte loads, a shift and an or on a 32-bit core, because a
+/// halfword load needs 2-byte alignment the compiler cannot prove a `&[u8]`
+/// has. Measured on an ESP32-S3 that is **42-59%** of the audio element
+/// kernels; `StereoToMono` spent 56 of its 72 loop instructions on it.
+///
+/// `None` means "take the byte path", and a caller must always have one:
+///
+/// - the slice is not 2-byte aligned, or its length is odd;
+/// - the target is big-endian, where the in-memory order of an `i16` is not
+///   the little-endian order the wire format defines.
+///
+/// In practice a heap or DMA buffer is aligned and this returns `Some`, but
+/// the byte path stays as the oracle and the fallback, exactly as a scalar
+/// kernel stays the oracle for its vector twin.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_i16(bytes: &[u8]) -> Option<&[i16]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: `i16` is plain old data -- no padding, no niches, no invalid
+    // bit patterns and no `Drop` -- so viewing initialised bytes as `i16` is
+    // sound once the alignment is right, which is what `align_to` finds. The
+    // view is taken ONLY when both the prefix and the suffix it had to split
+    // off are empty, i.e. the buffer was already aligned and its length is
+    // even, so the returned slice covers exactly the bytes passed in and
+    // nothing is skipped or invented. This is what `bytemuck::try_cast_slice`
+    // does; see `lib.rs` for why it is spelled out rather than imported.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to::<i16>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
+/// [`as_i16`] for a buffer being written.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_i16_mut(bytes: &mut [u8]) -> Option<&mut [i16]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as in `as_i16`, and the `&mut` is exclusive for the lifetime of
+    // the returned slice because it is reborrowed from the caller's.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to_mut::<i16>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
 /// Sample encoding of one channel value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
@@ -158,6 +216,78 @@ impl<'a> PcmBlock<'a> {
                 .chunks_exact(2)
                 .map(|b| i16::from_le_bytes([b[0], b[1]])),
         )
+    }
+}
+
+#[cfg(test)]
+mod i16_view {
+    use super::{as_i16, as_i16_mut};
+
+    /// The view must agree with the byte path it replaces, for every value,
+    /// and must REFUSE every case where it would not.
+    #[test]
+    fn agrees_with_from_le_bytes_and_refuses_the_rest() {
+        // one extra byte at the front so a deliberately misaligned view is
+        // available from the same allocation
+        let mut raw = vec![0u8; 1 + 64];
+        for (i, b) in raw.iter_mut().enumerate() {
+            *b = (i.wrapping_mul(97) ^ (i >> 3)) as u8;
+        }
+        let buf = &raw[1..]; // 64 bytes, alignment unknown but length even
+
+        match as_i16(buf) {
+            Some(v) => {
+                assert_eq!(v.len(), buf.len() / 2);
+                for (k, &s) in v.iter().enumerate() {
+                    assert_eq!(
+                        s,
+                        i16::from_le_bytes([buf[k * 2], buf[k * 2 + 1]]),
+                        "sample {k} disagrees with the byte path"
+                    );
+                }
+            }
+            // a refusal is always allowed; the caller has a byte path
+            None => {}
+        }
+
+        // odd length is never viewable
+        assert!(as_i16(&raw[1..64]).is_none(), "odd length must refuse");
+        assert!(as_i16(&raw[..1]).is_none(), "one byte must refuse");
+        assert!(as_i16(&[]).is_some_and(<[i16]>::is_empty) || as_i16(&[]).is_none());
+
+        // a Vec<u16>'s bytes ARE aligned, so that case must succeed and the
+        // values must round-trip -- this is the path the elements will take
+        let words: Vec<u16> = (0..32).map(|i| (i * 2477) as u16).collect();
+        let bytes: Vec<u8> = words.iter().flat_map(|w| w.to_le_bytes()).collect();
+        let aligned = as_i16(&bytes).expect("a fresh Vec<u8> is 2-byte aligned here");
+        for (k, &s) in aligned.iter().enumerate() {
+            assert_eq!(s as u16, words[k], "word {k}");
+        }
+    }
+
+    /// Writing through the view must land the same bytes the byte path would.
+    #[test]
+    fn writes_land_where_the_byte_path_would_put_them() {
+        let vals: [i16; 8] = [0, -1, 1, i16::MIN, i16::MAX, -12345, 30000, -30000];
+
+        let mut via_view = vec![0u8; 16];
+        let ok = match as_i16_mut(&mut via_view) {
+            Some(v) => {
+                v.copy_from_slice(&vals);
+                true
+            }
+            None => false,
+        };
+
+        let mut via_bytes = vec![0u8; 16];
+        for (k, &x) in vals.iter().enumerate() {
+            via_bytes[k * 2..k * 2 + 2].copy_from_slice(&x.to_le_bytes());
+        }
+
+        if ok {
+            assert_eq!(via_view, via_bytes, "the two write paths disagree");
+        }
+        assert!(as_i16_mut(&mut via_view[..15]).is_none(), "odd length");
     }
 }
 

@@ -1,5 +1,21 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![forbid(unsafe_code)]
+// `deny`, not `forbid`, for exactly ONE exception: `pcm::as_i16`/`as_i16_mut`,
+// six lines that view an aligned `&[u8]` as `&[i16]`. Everything else in this
+// crate still rejects `unsafe` at compile time, and the two exceptions carry
+// `#[allow(unsafe_code)]` on the function, so `git grep unsafe_code` finds
+// every one of them.
+//
+// Why it is here at all: on a 32-bit core, `i16::from_le_bytes([b[0], b[1]])`
+// over a `&[u8]` cannot use a halfword load, because the load needs 2-byte
+// alignment the compiler cannot prove a byte slice has. Measured on an
+// ESP32-S3, that costs the audio elements 42-59% -- `StereoToMono` spent 56
+// of its 72 loop instructions marshalling bytes into i16s and back.
+//
+// Why not `bytemuck`, which does exactly this and needs no `unsafe` here:
+// this crate is the base of nine repos and has ZERO dependencies, which is
+// worth more than six auditable lines. Swapping to `bytemuck::try_cast_slice`
+// is a three-line change if that trade is ever re-made.
+#![deny(unsafe_code)]
 //! `rusty_esp_core` — the shared vocabulary of the Janus ESP family.
 //!
 //! Every Janus package (`rusty_esp_audio`, `rusty_esp_image`, `rusty_esp_video`,
