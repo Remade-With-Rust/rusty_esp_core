@@ -103,6 +103,46 @@ pub fn round_sat_i16(v: f32) -> i16 {
     unsafe { t.to_int_unchecked::<i16>() }
 }
 
+/// Round an `f32` to the nearest integer, TIES TO EVEN, and saturate to
+/// `i16`. The sibling of [`round_sat_i16`], which breaks ties away from zero.
+///
+/// Both roundings are needed and they are not interchangeable: sample-format
+/// conversion follows `rintf`, i.e. the hardware default of ties-to-even,
+/// while the element chain rounds half away from zero. Keeping them as two
+/// named functions in one place is what stops the wrong one being reached for.
+///
+/// The rounding itself is `(v + 1.5*2^23) - 1.5*2^23`: for `|v| < 2^22` that
+/// addition lands in `[2^23, 2^24)` where one ulp is exactly 1.0, so it
+/// rounds to the nearest integer and the subtraction gives that integer back
+/// — two additions where `rintf` is a call.
+///
+/// As in [`round_sat_i16`], the final conversion is `to_int_unchecked`: the
+/// range test above it is what earns that, and a plain `as i16` would emit
+/// its own range and NaN tests on top of the ones already done.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn rint_sat_i16(v: f32) -> i16 {
+    /// `1.5 * 2^23`.
+    const ROUND_F32: f32 = 12_582_912.0;
+    // The in-range case first: it is what audio actually hits. NaN fails both
+    // comparisons and falls through to the explicit test below.
+    if v > -32768.0 && v < 32767.0 {
+        let r = (v + ROUND_F32) - ROUND_F32;
+        // SAFETY: `v` is strictly inside (-32768, 32767) and not NaN, and the
+        // two additions above return the nearest INTEGER to it -- which is
+        // therefore in [-32768, 32767] and exactly representable as `i16`.
+        return unsafe { r.to_int_unchecked::<i16>() };
+    }
+    if v.is_nan() {
+        // `rintf(NaN) as i16` is 0; say so rather than rely on the cast.
+        0
+    } else if v >= 32767.0 {
+        i16::MAX
+    } else {
+        i16::MIN
+    }
+}
+
 /// `copysignf` without a dependency: the sign of `y` on the magnitude of `x`.
 #[inline]
 fn libm_copysignf(x: f32, y: f32) -> f32 {
