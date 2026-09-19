@@ -66,6 +66,89 @@ pub fn as_i16_mut(bytes: &mut [u8]) -> Option<&mut [i16]> {
     }
 }
 
+/// Round an `f32` to the nearest `i16`, ties away from zero, saturating.
+///
+/// Every PCM element that works in floats ends on this: `DcBlock`, `Biquad`,
+/// `Agc` and the `f32 -> i16` conversion all call it once per sample, so it
+/// is the single most-executed numeric primitive in the audio path.
+///
+/// `libm::roundf(x)` IS `truncf(x + copysignf(0.5 - 0.25*EPSILON, x))`, and a
+/// cast to an integer truncates as well -- so the obvious spelling truncates
+/// TWICE, once in the float unit and again in the cast. Adding the bias and
+/// converting once is the same `i16` for every one of the 2^32 patterns.
+///
+/// The final conversion is `to_int_unchecked`, and the three tests above it
+/// are what make that sound: a plain `as i16` is a SATURATING cast that emits
+/// its own range and NaN tests, and a census of the flashed ELF found those
+/// still being emitted after the explicit tests had already proved the range
+/// -- four float compares per sample where two suffice.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn round_sat_i16(v: f32) -> i16 {
+    let t = v + libm_copysignf(0.5 - 0.25 * f32::EPSILON, v);
+    if t >= 32767.0 {
+        return i16::MAX;
+    }
+    if t <= -32768.0 {
+        return i16::MIN;
+    }
+    if t.is_nan() {
+        // what the saturating cast does, and what the old form did by
+        // falling through both comparisons
+        return 0;
+    }
+    // SAFETY: the three tests above leave `t` strictly inside
+    // (-32768.0, 32767.0) and not NaN, so its truncation toward zero is an
+    // `i16`, which is exactly `to_int_unchecked`'s requirement.
+    unsafe { t.to_int_unchecked::<i16>() }
+}
+
+/// `copysignf` without a dependency: the sign of `y` on the magnitude of `x`.
+#[inline]
+fn libm_copysignf(x: f32, y: f32) -> f32 {
+    f32::from_bits((x.to_bits() & 0x7fff_ffff) | (y.to_bits() & 0x8000_0000))
+}
+
+/// [`as_i16`] for unsigned 16-bit words: packed RGB565 pixels, and anything
+/// else that is a `u16` living in a byte buffer.
+///
+/// Same contract and the same reasons to refuse. A camera hands over RGB565
+/// as bytes, so every pixel a converter or a downscaler reads is two byte
+/// loads, a shift and an or, and every one it writes is two byte stores.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_u16(bytes: &[u8]) -> Option<&[u16]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as in `as_i16`; `u16` is plain old data with no invalid bit
+    // patterns, and the view is taken only when nothing was split off either
+    // end, so it covers exactly the bytes passed in.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to::<u16>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
+/// [`as_u16`] for a buffer being written.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_u16_mut(bytes: &mut [u8]) -> Option<&mut [u16]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as in `as_u16`, and the `&mut` is exclusive for the lifetime of
+    // the returned slice because it is reborrowed from the caller's.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to_mut::<u16>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
 /// [`as_i16`] for 32-bit floats: the other half of every PCM conversion.
 ///
 /// Same contract, same reasons to refuse, and the same 4-byte-per-sample
