@@ -99,6 +99,27 @@ cargo check -p rusty_esp_core --no-default-features --target riscv32imac-unknown
 cargo check -p rusty_esp_core --no-default-features --features alloc --target riscv32imac-unknown-none-elf
 ```
 
+## The seams
+
+Two crates in this repo exist to hold a decision once, so no firmware in the
+family makes it twice.
+
+**`rusty_esp_alloc`** — the allocator seam. One place names `rusty_alloc`,
+holds its exact pin, and hands out the type and the bare-metal region; the
+deliverable's own `main` does the declaring, because a library must never
+declare a global allocator.
+
+**`rusty_esp_rtos`** — the RTOS seam, new in 0.1.1. One place names the
+[Kairos](https://github.com/Remade-With-Rust/kairos) kernel's ports and the
+`esp-hal` window they have to agree with. Two rungs: `port` brings the
+context-switch primitives, `kernel` adds the scheduler. Nothing by default,
+so adding it changes no existing build.
+
+It is not theoretical — on a XIAO ESP32-S3 the Kairos port runs under a
+Janus firmware at **+0.025% on sign and −0.028% on verify**, and two tasks
+chosen by `Kernel::switch_context` pass through the seam with 103 real swaps
+and zero witness faults.
+
 ## Part of Janus
 
 **Janus** rebuilds the Espressif ESP32 and Arduino application portfolio as
