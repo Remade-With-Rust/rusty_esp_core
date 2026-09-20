@@ -1,0 +1,56 @@
+# The RTOS seam. One crate holds the Kairos port pins and the compatibility
+# window, so no firmware in the family names `rusty_rtos_port-*` directly and
+# no library ever does.
+#
+# Why a seam at all: the same reason `rusty_esp_alloc` is one. The port is a
+# 0.x dependency whose companion set is not free to drift -- `xtensa-lx-rt` is
+# a `links` crate, so exactly one version may exist in a graph, and esp-hal
+# chooses it. A pin written in six firmwares is six places to edit when the
+# port moves; written here it is one.
+
+[package]
+name = "rusty_esp_rtos"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+readme = "README.md"
+documentation = "https://docs.rs/rusty_esp_rtos"
+description = "The Janus RTOS seam: the Kairos (rusty_rtos) port pinned once, with the esp-hal companion window it has to agree with."
+keywords = ["esp32", "embedded", "no-std", "rtos", "remade-with-rust"]
+categories = ["embedded", "no-std", "hardware-support"]
+
+[features]
+# NOTHING by default. A firmware that does not ask for the Kairos kernel gets
+# an empty crate, so adding this to a workspace changes no existing build.
+default = []
+std = []
+# Bring in the Kairos port for whatever target is being built. On a host, or
+# on a target with no port, this is still empty and still compiles -- which is
+# what lets a shared library depend on the seam without forcing a kernel.
+#
+# All three `dep:` entries are named even though two of them are target
+# gated: a `dep:` for a target that is not being built is simply ignored, and
+# leaving them out means the feature enables the vocabulary without the port
+# it is named for -- which fails as an unresolved import, on the chip only.
+port = ["dep:rusty_rtos_core", "dep:rusty_rtos_port-xtensa", "dep:rusty_rtos_port-riscv"]
+
+[dependencies]
+# EXACT pins, and this is the one crate in the family allowed to name them.
+# 0.1.0 is the first published release of the Kairos ports; the API is not
+# frozen, so a range that could resolve forward is not worth writing yet.
+rusty_rtos_core = { version = "=0.1.0", default-features = false, optional = true }
+
+[target.'cfg(target_arch = "xtensa")'.dependencies]
+# ESP32 (LX6) and ESP32-S3 (LX7), on the `esp` toolchain.
+rusty_rtos_port-xtensa = { version = "=0.1.0", optional = true }
+
+[target.'cfg(target_arch = "riscv32")'.dependencies]
+# C6 / C61 / H2 / P4.
+rusty_rtos_port-riscv = { version = "=0.1.0", optional = true }
+
+[lints]
+workspace = true
