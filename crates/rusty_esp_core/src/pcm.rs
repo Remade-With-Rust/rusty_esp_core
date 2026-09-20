@@ -49,6 +49,48 @@ pub fn as_i16(bytes: &[u8]) -> Option<&[i16]> {
     }
 }
 
+/// The `i32` view of a little-endian PCM buffer, or `None`.
+///
+/// The `i32` twin of [`as_i16`], and it exists for the same reason: an
+/// `i32` read out of a `&[u8]` is four byte loads plus three shifts and
+/// three ors, because a word load needs 4-byte alignment the compiler
+/// cannot prove a byte slice has. Settling the alignment once per call
+/// leaves one load per sample -- and lets the ESP32-S3 twins of the integer
+/// `convert` pairs see real samples.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_i32(bytes: &[u8]) -> Option<&[i32]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as for `as_i16` -- `i32` is plain old data, and the view is
+    // taken ONLY when `align_to` split off neither a prefix nor a suffix, so
+    // it covers exactly the bytes passed in.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to::<i32>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
+/// [`as_i32`] for a buffer being written.
+#[allow(unsafe_code)]
+#[must_use]
+pub fn as_i32_mut(bytes: &mut [u8]) -> Option<&mut [i32]> {
+    if cfg!(target_endian = "big") {
+        return None;
+    }
+    // SAFETY: as for `as_i32`; the exclusive borrow of `bytes` is what makes
+    // the exclusive view of the same memory sound.
+    let (prefix, mid, suffix) = unsafe { bytes.align_to_mut::<i32>() };
+    if prefix.is_empty() && suffix.is_empty() {
+        Some(mid)
+    } else {
+        None
+    }
+}
+
 /// [`as_i16`] for a buffer being written.
 #[allow(unsafe_code)]
 #[must_use]
