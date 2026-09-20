@@ -75,6 +75,14 @@ pub mod compat {
     /// different states, and a seam that stays silent about which one it is
     /// reports success by accident.
     pub const HOSTS_ESP_RADIO: bool = false;
+
+    /// Whether this build carries the Kairos SCHEDULER, not merely the
+    /// context-switch primitives.
+    ///
+    /// The distinction is the one that actually matters to a firmware:
+    /// `port` can leave a task and return to it; only `kernel` can choose
+    /// which task to return to.
+    pub const HAS_SCHEDULER: bool = cfg!(feature = "kernel");
 }
 
 /// The Kairos port for the target being built, or `None` where there is
@@ -114,6 +122,15 @@ pub use rusty_rtos_port_riscv as port;
 #[cfg(feature = "port")]
 pub use rusty_rtos_core as core_types;
 
+/// The Kairos scheduler, under the `kernel` feature.
+///
+/// [`port`] gives a firmware the primitives to LEAVE a task and come back —
+/// `Context`, `new_task_context`, `switch_context`, `yield_now`. It does not
+/// decide which task runs next. This does: `Kernel::create_task`,
+/// `start_scheduler`, `switch_context`, the ready lists and the tick.
+#[cfg(feature = "kernel")]
+pub use rusty_rtos_kernel_core as kernel;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -128,6 +145,13 @@ mod tests {
     }
 
     /// The window is stated, not implied.
+    /// The two feature rungs are distinguishable, so a firmware cannot
+    /// claim a scheduler it did not link.
+    #[test]
+    fn the_scheduler_rung_is_reported_honestly() {
+        assert_eq!(compat::HAS_SCHEDULER, cfg!(feature = "kernel"));
+    }
+
     #[test]
     fn the_window_is_not_empty() {
         assert!(compat::ESP_HAL.contains(&"1.2.0"));

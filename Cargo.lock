@@ -97,6 +97,7 @@ name = "rusty_esp_rtos"
 version = "0.1.1"
 dependencies = [
  "rusty_rtos_core",
+ "rusty_rtos_kernel-core",
  "rusty_rtos_port-riscv",
  "rusty_rtos_port-xtensa",
 ]
@@ -106,6 +107,15 @@ name = "rusty_rtos_core"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e3998d3323106878db36fbc8b565cd8eb572609118fa9a04e3e14c23ff80d80"
+
+[[package]]
+name = "rusty_rtos_kernel-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f078537e5122d694f659cb347b8e9fc062f2c21639e2661af79d1bff76856f5"
+dependencies = [
+ "rusty_rtos_core",
+]
 
 [[package]]
 name = "rusty_rtos_port-riscv"

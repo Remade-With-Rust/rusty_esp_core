@@ -37,12 +37,25 @@ std = []
 # leaving them out means the feature enables the vocabulary without the port
 # it is named for -- which fails as an unresolved import, on the chip only.
 port = ["dep:rusty_rtos_core", "dep:rusty_rtos_port-xtensa", "dep:rusty_rtos_port-riscv"]
+# The scheduler itself. `port` alone brings the context-switch primitives --
+# `Context`, `new_task_context`, `switch_context`, `yield_now` -- which is
+# enough to leave a task and come back, and NOT enough to decide which task
+# runs next. A firmware that creates tasks needs this.
+#
+# Separate from `port` on purpose: the radio-driver joint needs a scheduler,
+# a bare-metal smoke test of the switch does not, and a firmware should be
+# able to take the smaller thing.
+kernel = ["port", "dep:rusty_rtos_kernel-core"]
 
 [dependencies]
 # EXACT pins, and this is the one crate in the family allowed to name them.
 # 0.1.0 is the first published release of the Kairos ports; the API is not
 # frozen, so a range that could resolve forward is not worth writing yet.
 rusty_rtos_core = { version = "=0.1.0", default-features = false, optional = true }
+# The fixed-priority preemptive scheduler. `-core` rather than the facade:
+# it is the `no_std` half with no CPU and no allocator, which is what a
+# firmware links.
+rusty_rtos_kernel-core = { version = "=0.1.0", default-features = false, optional = true }
 
 [target.'cfg(target_arch = "xtensa")'.dependencies]
 # ESP32 (LX6) and ESP32-S3 (LX7), on the `esp` toolchain.

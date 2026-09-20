@@ -1,0 +1,43 @@
+# K5, the Xtensa half: two tasks SCHEDULED BY THE KAIROS KERNEL, reached
+# through the Janus seam.
+#
+# Kairos's own `xiao-s3-switch` proves the context switch on this ISA and
+# says plainly what it does not claim: "`Kernel::switch_context` is not in
+# this loop." This cell puts it in the loop, and reaches the kernel and the
+# port through `rusty_esp_rtos` rather than by naming them -- so what it
+# proves is that the SEAM works, which is Janus's half of the joint.
+
+[package]
+name = "xiao-s3-kairos-tasks"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[[bin]]
+name = "xiao-s3-kairos-tasks"
+harness = false
+
+[dependencies]
+# The seam, at the `kernel` rung. Never `rusty_rtos_*` directly: that is the
+# rule this firmware exists to exercise.
+rusty_esp_rtos = { path = "../../crates/rusty_esp_rtos", default-features = false, features = ["kernel"] }
+# 1.2.0 is Janus's S3 companion set; Kairos's own cells run 1.2.1. Both
+# resolve xtensa-lx-rt 0.23, which is the joint that actually has to hold.
+esp-hal = { version = "=1.2.0", features = ["esp32s3", "unstable"] }
+esp-bootloader-esp-idf = { version = "=0.6.0", features = ["esp32s3"] }
+esp-println = { version = "=0.18.0", features = ["esp32s3"] }
+esp-backtrace = { version = "=0.20.0", features = ["esp32s3", "panic-handler", "println"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = "z"
+panic = "abort"
+
+[workspace]
