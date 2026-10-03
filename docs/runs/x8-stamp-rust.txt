@@ -1,0 +1,26 @@
+﻿   628.1  [espino] reset through COM4 (usb-jtag)
+   630.3  rusty_esp_boot: ota_0 otadata seq 0 state Undefined
+   630.3  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4895
+   630.3  janus/cam-page-b: ota slot=Ota0 state=Valid
+   630.4  janus/cam-page-b: ota marked valid (was Valid)
+   630.4  ESP-ROM:esp32s3-20210327
+   630.4  Build:Mar 27 2021
+   630.4  rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+   630.4  Saved PC:0x4207a4d7
+   630.4  SPIWP:0xee
+   630.4  mode:DIO, clock div:2
+   630.4  load:0x3fce2700,len:0xe70
+   630.4  load:0x403cb800,len:0x3fa0
+   630.4  load:0x403cf7a0,len:0x598
+   630.5  entry 0x403cf840
+   630.5  rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+   630.5  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+   630.5  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 27 table 6 load 213 signature 0, 248 since reset
+   630.5  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4409
+   630.5  janus/cam-page-b: ota slot=Ota0 state=Valid
+   630.5  janus/cam-page-b: ota marked valid (was Valid)
+   885.7  janus/cam-page-b: sensor OV3660 configured=Ok(()) fps_cap=15 quality_scale=12
+  1511.9  janus/cam-page-b: network hosting janus-cam (wpa2, up to 4 stations)
+  1514.5  janus/cam-page-b: page http://192.168.71.1/?t=<token>  (stream at /stream; the page and the stream need the t= token, this device's own) join_ms=1015 dhcp_ms=1015
+  1518.7  janus/cam-page-b: camera task up, fps_cap=15
+  9673.1  [espino] done: timeout after 24 lines

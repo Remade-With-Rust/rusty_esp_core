@@ -1,0 +1,72 @@
+=== kill test 23:14:22
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature NoSignature
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+[ok] sb/unsigned: expected /refused: signature NoSignature/: True; the app booted: False (should: False)
+23:14:42 sb/flip-hash : F:\jt-x8\flip-hash.bin at 0x20000
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 231, computed: 230 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 231, computed: 230 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+[ok] sb/flip-hash: expected /refused: (Sha256|Checksum)/: True; the app booted: False (should: False)
+23:15:02 sb/flip-sig : F:\jt-x8\flip-sig.bin at 0x20000
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature Rejected(1966311518)
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature Rejected(1966311518)
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+[ok] sb/flip-sig: expected /refused: signature (Rejected|DigestMismatch)/: True; the app booted: False (should: False)
+23:15:23 sb/signed-good : F:\jt-x8\good-signed.bin at 0x20000
+  rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 otadata seq 0 state Undefined
+  rusty_esp_boot: otadata[0] was blank: ota_0 written as seq 1 Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662640 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 27 table 8 load 213 signature 151, 424 since reset
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=7264
+  janus/cam-page-b: ota slot=Ota0 state=Valid
+  janus/cam-page-b: ota marked valid (was Valid)
+  janus/cam-page-b: page http://192.168.71.1/?t=<token>  (stream at /stream; the page and the stream need the t= token, this device's own) join_ms=1015 dhcp_ms=1015
+[FAIL] sb/signed-good: expected /Loaded app from partition at offset 0x20000/: True; the app booted: False (should: True)
+23:16:07 loader open: F:\jt-x8\boot-open.bin (21520 B) at 0x0, the table, otadata and ota_1's first sector erased
+23:16:11 open/flip-hash : F:\jt-x8\flip-hash.bin at 0x20000
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 231, computed: 230 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 231, computed: 230 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+[ok] open/flip-hash: expected /refused: (Sha256|Checksum)/: True; the app booted: False (should: False)
+23:16:32 open/flip-sig : F:\jt-x8\flip-sig.bin at 0x20000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662640 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 27 table 6 load 213 signature 0, 247 since reset
+  rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662640 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 27 table 6 load 213 signature 0, 247 since reset
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4408
+  janus/cam-page-b: ota slot=Ota0 state=Valid
+  janus/cam-page-b: ota marked valid (was Valid)
+[FAIL] open/flip-sig: expected /Loaded app from partition at offset 0x20000/: True; the app booted: False (should: True)
+23:17:15 open/unsigned : F:\jt-x8\good.bin at 0x20000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662640 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 27 table 6 load 213 signature 0, 247 since reset
+  rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 40 MHz (the ROM's 20), uart source 3, spi0 clk=0x80000000 ctrl=0xac2008 spi1 clk=0x80000000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662640 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 27 table 6 load 213 signature 0, 247 since reset
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4408
+  janus/cam-page-b: ota slot=Ota0 state=Valid
+  janus/cam-page-b: ota marked valid (was Valid)
+[FAIL] open/unsigned: expected /Loaded app from partition at offset 0x20000/: True; the app booted: False (should: True)
+=== NOT AS PLANNED: 4 of 7 cases
+=== done 23:17:59

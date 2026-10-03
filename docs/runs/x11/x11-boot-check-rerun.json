@@ -1,0 +1,24 @@
+[
+ {
+  "name": "xiao-s3-keys",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-keys",
+  "bytes": 249264,
+  "expect": "KEY verify_ok=100/100",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11c\\x11-boot-xiao-s3-keys.txt"
+ },
+ {
+  "name": "xiao-s3-kairos-tasks",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-kairos-tasks",
+  "bytes": 124176,
+  "expect": "RESULT: PASS",
+  "seen": true,
+  "panic": false,
+  "slot": "",
+  "ok": true,
+  "log": "F:/jt-x10/x11c\\x11-boot-xiao-s3-kairos-tasks.txt"
+ }
+]

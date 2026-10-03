@@ -82,6 +82,7 @@ let n = manifest.encode(&mut buf)?;   // deterministic bytes: sign them
 | `error` | `Error` — one `Copy` enum that crosses `no_std` boundaries |
 | `capability` | `Manifest`, `Chip`, `Declared`, and the canonical encoding a signature covers |
 | `hal` | the `Clock`, `Rng` and `Kv` traits; under `std`, working host implementations for tests |
+| `nvs` | Espressif's NVS partition format in pure Rust — a reader for every value type, a writer for blobs, `NvsKv` as the `Kv` seam over a `Flash` trait (esp-storage on the chip); reads what ESP-IDF and `espino-nvs` write and writes what ESP-IDF reads |
 
 ## Two tracks, one vocabulary
 

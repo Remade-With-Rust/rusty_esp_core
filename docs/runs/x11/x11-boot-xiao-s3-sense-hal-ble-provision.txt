@@ -1,0 +1,7 @@
+[espino] reset through COM4 (usb-jtag)
+rusty_esp_boot: ota_0 otadata seq 0 state Undefined
+rusty_esp_boot: otadata[0] was blank: ota_0 written as seq 1 Valid
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 705680 B, 5 segments, 80104 B into RAM, entry 0x403787b8; ms: rom 28 table 6 load 163 signature 0, 222 since reset; cpu 80 MHz sysclk=0xa8400 cpu_per=0xc
+== JANUS BLE xiao-s3 track=B mode=provision reset=Some(CoreUsbUart) ==
+[espino] expected line seen: "== JANUS BLE"
+[espino] done: expect after 4 lines
