@@ -75,7 +75,7 @@ dependencies = [
 
 [[package]]
 name = "rusty_esp_alloc"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "rusty_alloc",
  "rusty_alloc-api",
@@ -83,18 +83,18 @@ dependencies = [
 
 [[package]]
 name = "rusty_esp_core"
-version = "0.1.1"
+version = "0.1.2"
 
 [[package]]
 name = "rusty_esp_core-esp"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "rusty_esp_core",
 ]
 
 [[package]]
 name = "rusty_esp_rtos"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "rusty_rtos_core",
  "rusty_rtos_kernel-core",
