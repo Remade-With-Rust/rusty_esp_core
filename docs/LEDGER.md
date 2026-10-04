@@ -539,3 +539,7 @@ The DID is the board's on both boots; the cell reaches `main` 70 ms after
 reset (X8's C14-era figure, corrected, was about 212). The page token is
 redacted in the records. The bench XIAO now runs C14 hosting `janus-cam`;
 the laptop did not join it.
+
+## NVS compaction: a full partition reclaims a page (2026-10-04)
+
+E3's C16 refused its owner's adoption with `CODE_STORE`: the bench XIAO's 3-page identity partition had both usable pages full — X9's four adoptions and the setup sessions had left 209 erased entries and 10 free, and `nvs` did no garbage collection. `put` now compacts when the pages are full: the full page with the most erased entries has its live entries copied, header and span together, into the reserve page, which becomes the active page with the next sequence number; the old page is erased and is the new reserve. Until that erase every value is in flash twice, identical. Two tests: 60 rewrites of a 322-byte record on a 3-page partition with the device key read back every round, and a truly full partition still refusing with its values intact. The run after it adopted at roster 7.
