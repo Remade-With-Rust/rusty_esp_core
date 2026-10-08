@@ -755,7 +755,10 @@ impl<F: Flash> Nvs<F> {
                 i += 1;
                 continue;
             }
-            let e = self.entry(At { page: victim, index: i })?;
+            let e = self.entry(At {
+                page: victim,
+                index: i,
+            })?;
             let span = e.span().clamp(1, ENTRIES_PER_PAGE - i);
             for k in 0..span {
                 let mut raw = [0u8; ENTRY_SIZE as usize];
@@ -805,7 +808,9 @@ impl<F: Flash> Nvs<F> {
             }
             self.mark_full(page)?;
         }
-        Err(Error::BufferTooSmall { needed: entries as usize })
+        Err(Error::BufferTooSmall {
+            needed: entries as usize,
+        })
     }
 
     /// Write one entry at a slot and mark it written.
@@ -1196,13 +1201,21 @@ mod tests {
             record[4..].fill(round as u8);
             nvs.put_blob("identity", "adoption", &record)
                 .unwrap_or_else(|e| panic!("round {round}: {e:?}"));
-            nvs.put_blob("identity", "owner_pin", &[round as u8; 48]).unwrap();
+            nvs.put_blob("identity", "owner_pin", &[round as u8; 48])
+                .unwrap();
             let n = nvs.get("identity", "adoption", &mut out).unwrap().unwrap();
             assert_eq!(&out[..n], &record[..], "round {round}: the adoption");
             let n = nvs.get("identity", "owner_pin", &mut out).unwrap().unwrap();
             assert_eq!(&out[..n], &[round as u8; 48], "round {round}: the pin");
-            let n = nvs.get("identity", "device_key", &mut out).unwrap().unwrap();
-            assert_eq!(&out[..n], &key_once[..], "round {round}: the key written once");
+            let n = nvs
+                .get("identity", "device_key", &mut out)
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                &out[..n],
+                &key_once[..],
+                "round {round}: the key written once"
+            );
             // one page free, as NVS requires
             let free = (0..3)
                 .filter(|&p| {
@@ -1215,9 +1228,15 @@ mod tests {
         // what came back is readable by a fresh open too
         let image = nvs.into_flash().0;
         let mut again = Nvs::open(RamFlash::from_image(&image)).unwrap();
-        let n = again.get("identity", "device_key", &mut out).unwrap().unwrap();
+        let n = again
+            .get("identity", "device_key", &mut out)
+            .unwrap()
+            .unwrap();
         assert_eq!(&out[..n], &key_once[..]);
-        let n = again.get("identity", "adoption", &mut out).unwrap().unwrap();
+        let n = again
+            .get("identity", "adoption", &mut out)
+            .unwrap()
+            .unwrap();
         assert_eq!(&out[..4], &59u32.to_le_bytes());
         assert_eq!(n, 322);
     }
