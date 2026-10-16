@@ -782,6 +782,59 @@ impl<F: Flash> Nvs<F> {
         Ok(target)
     }
 
+    /// Erase every value that is no longer live from the flash itself.
+    ///
+    /// NVS rewrites and removes by marking the old entry erased in its
+    /// page's bitmap: the old bytes stay on the flash until that page is
+    /// erased, which only a full partition's compaction ever does. For a
+    /// secret that was rewritten -- a passphrase sealed where it lay, a key
+    /// rotated -- that leaves the old value readable off a dumped flash
+    /// (found 2026-10-15 on an encrypted C6: the settings sealed, the
+    /// plaintext still there). This compacts every page that holds an erased
+    /// entry, so each such page is erased once its live entries are copied
+    /// out. Returns the pages scrubbed. Every live value survives it, as
+    /// [`Self::compact`] guarantees for one page.
+    pub fn scrub(&mut self) -> Result<u32> {
+        let mut scrubbed = 0;
+        loop {
+            let mut stale = false;
+            for page in 0..self.pages {
+                let state = self.header(page)?.state;
+                if state != STATE_ACTIVE && state != STATE_FULL {
+                    continue;
+                }
+                let bitmap = self.bitmap(page)?;
+                if (0..ENTRIES_PER_PAGE).any(|i| Self::entry_state(&bitmap, i) == ENTRY_ERASED) {
+                    stale = true;
+                    break;
+                }
+            }
+            if !stale {
+                return Ok(scrubbed);
+            }
+            // one active page at a time: the current one becomes full, so it
+            // can be a victim and the compacted page is the only active one
+            if let Some(active) = self.active_page()? {
+                self.mark_full(active)?;
+            }
+            let mut target = None;
+            let mut max_seq = None;
+            for page in 0..self.pages {
+                let h = self.header(page)?;
+                if h.state == STATE_ACTIVE || h.state == STATE_FULL {
+                    max_seq = Some(max_seq.map_or(h.seq, |m: u32| m.max(h.seq)));
+                } else if target.is_none() {
+                    target = Some((page, h.state));
+                }
+            }
+            let Some((page, state)) = target else {
+                return Err(Error::BufferTooSmall { needed: 0 });
+            };
+            self.compact(page, state, max_seq)?;
+            scrubbed += 1;
+        }
+    }
+
     fn mark_full(&mut self, page: u32) -> Result<()> {
         self.flash
             .write(page * PAGE_SIZE, &STATE_FULL.to_le_bytes())?;
@@ -1187,6 +1240,86 @@ mod tests {
     /// shape) and a value rewritten far past what two pages hold without
     /// reclaiming; every live value reads back after each write, and the
     /// pages never exceed what NVS allows (one in reserve).
+    fn contains(hay: &[u8], needle: &[u8]) -> bool {
+        hay.windows(needle.len()).any(|w| w == needle)
+    }
+
+    /// A rewritten secret stays on the flash until its page is erased (the
+    /// sealed settings on the encrypted C6, 2026-10-15); `scrub` erases it
+    /// and keeps every live value, readable after a fresh open, with a page
+    /// still in reserve.
+    #[test]
+    fn scrub_erases_what_was_rewritten_and_keeps_what_is_live() {
+        let secret = b"hunter2-the-old-passphrase";
+        let mut nvs = Nvs::open(RamFlash::blank(4)).unwrap();
+        nvs.put_blob("janus", "wifi.ssid", b"home-network").unwrap();
+        nvs.put_blob("janus", "wifi.psk", secret).unwrap();
+        nvs.put_blob("janus", "name", b"kitchen").unwrap();
+        // sealed where it lay: the same key, other bytes
+        nvs.put_blob("janus", "wifi.psk", b"\0JS\x01sealed-bytes-now")
+            .unwrap();
+        // and one removed outright
+        nvs.put_blob("janus", "old", b"removed-secret-value")
+            .unwrap();
+        assert!(nvs.remove("janus", "old").unwrap());
+        let image = nvs.into_flash().0;
+        assert!(
+            contains(&image, secret),
+            "the hazard: rewritten, still there"
+        );
+        assert!(
+            contains(&image, b"removed-secret-value"),
+            "removed, still there"
+        );
+
+        let mut nvs = Nvs::open(RamFlash::from_image(&image)).unwrap();
+        assert!(nvs.scrub().unwrap() >= 1);
+        assert_eq!(nvs.scrub().unwrap(), 0, "nothing stale is left to scrub");
+        let image = nvs.into_flash().0;
+        assert!(!contains(&image, secret), "the old passphrase is gone");
+        assert!(
+            !contains(&image, b"removed-secret-value"),
+            "the removed one too"
+        );
+
+        let mut again = Nvs::open(RamFlash::from_image(&image)).unwrap();
+        assert_eq!(
+            get(&mut again, "janus", "wifi.psk").unwrap(),
+            b"\0JS\x01sealed-bytes-now"
+        );
+        assert_eq!(
+            get(&mut again, "janus", "wifi.ssid").unwrap(),
+            b"home-network"
+        );
+        assert_eq!(get(&mut again, "janus", "name").unwrap(), b"kitchen");
+        assert_eq!(get(&mut again, "janus", "old"), None);
+        let actives = (0..4)
+            .filter(|&p| again.header(p).unwrap().state == STATE_ACTIVE)
+            .count();
+        assert_eq!(actives, 1, "one active page");
+        let free = (0..4)
+            .filter(|&p| {
+                let st = again.header(p).unwrap().state;
+                st != STATE_ACTIVE && st != STATE_FULL
+            })
+            .count();
+        assert!(free >= 1, "a reserve page");
+        // and it still takes writes
+        again.put_blob("janus", "wifi.psk", b"rotated").unwrap();
+        assert_eq!(get(&mut again, "janus", "wifi.psk").unwrap(), b"rotated");
+    }
+
+    #[test]
+    fn scrub_on_a_clean_partition_changes_nothing() {
+        let mut nvs = Nvs::open(RamFlash::blank(3)).unwrap();
+        nvs.put_blob("janus", "a", b"one").unwrap();
+        nvs.put_blob("janus", "b", b"two").unwrap();
+        let before = nvs.into_flash().0;
+        let mut nvs = Nvs::open(RamFlash::from_image(&before)).unwrap();
+        assert_eq!(nvs.scrub().unwrap(), 0);
+        assert_eq!(nvs.into_flash().0, before, "not a byte moved");
+    }
+
     #[test]
     fn a_full_partition_compacts_and_keeps_every_live_value() {
         let mut nvs = Nvs::open(RamFlash::blank(3)).unwrap();
