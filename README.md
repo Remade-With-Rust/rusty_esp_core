@@ -1,4 +1,4 @@
-### In The Wild with 222 Active Installs
+### In The Wild with 382 Active Installs
 
 FREE RAG Converter Online -- <a href="https://RAGconverter.com">RAGconverter.com</a>
 
@@ -82,7 +82,7 @@ let n = manifest.encode(&mut buf)?;   // deterministic bytes: sign them
 | `error` | `Error` — one `Copy` enum that crosses `no_std` boundaries |
 | `capability` | `Manifest`, `Chip`, `Declared`, and the canonical encoding a signature covers |
 | `hal` | the `Clock`, `Rng` and `Kv` traits; under `std`, working host implementations for tests |
-| `nvs` (new in 0.1.2) | Espressif's NVS partition format in pure Rust — a reader for every value type, a writer for blobs, `NvsKv` as the `Kv` seam over a `Flash` trait (esp-storage on the chip); reads what ESP-IDF and `espino-nvs` write and writes what ESP-IDF reads |
+| `nvs` (new in 0.1.2; `scrub` new in 0.1.3) | Espressif's NVS partition format in pure Rust — a reader for every value type, a writer for blobs, `NvsKv` as the `Kv` seam over a `Flash` trait (esp-storage on the chip); reads what ESP-IDF and `espino-nvs` write and writes what ESP-IDF reads. `scrub` erases replaced and removed values from the flash itself: NVS only marks them erased, so their old bytes stay readable until the page is erased |
 
 ## Two tracks, one vocabulary
 

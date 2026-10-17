@@ -25,11 +25,16 @@
 //! (`rusty_esp_mid` stores it as a 32-byte blob under one key, once per
 //! lifetime), and it is exactly what ESP-IDF's `nvs_set_blob` leaves in
 //! flash, so a partition written here reads under Track A and the other
-//! way round. **What this does not do:** garbage collection. A page is
-//! never reclaimed; one page is kept free, as NVS requires, and when the
-//! rest are full `put` fails with `BufferTooSmall`. A partition that is
-//! rewritten daily wants ESP-IDF's collector; an identity partition wants
-//! this.
+//! way round. **Reclaiming space:** one page is kept free, as NVS
+//! requires, and when every other page is full a `put` compacts: the full
+//! page with the most erased entries has its live entries copied, header and
+//! span together, into the reserve page, which becomes the active page with
+//! the next sequence number, and the old page is erased. Until that erase
+//! every value is in flash twice, identical, so a power loss in between
+//! loses nothing. Before this (2026-10-04) `put` failed with
+//! `BufferTooSmall` once the pages were full: four adoptions and a few
+//! setup sessions filled the bench XIAO's 3-page identity partition (E3's
+//! C16, run 3: the adoption's record refused by the store).
 //!
 //! Replacing a value marks the old entries erased and then writes the new
 //! ones. A power loss between the two loses the key; ESP-IDF orders it the
@@ -671,8 +676,10 @@ impl<F: Flash> Nvs<F> {
     }
 
     /// Bring a free page into use as the active one: erase it if it is not
-    /// blank, write its header with the next sequence number. Refuses to
-    /// take the last free page — NVS keeps one in reserve.
+    /// blank, write its header with the next sequence number. The last free
+    /// page is the reserve NVS keeps: rather than take it, a full page with
+    /// erased entries is compacted into it ([`Self::compact`]), and the
+    /// compacted page comes back as the active one.
     fn activate_page(&mut self) -> Result<u32> {
         let mut free = 0u32;
         let mut first = None;
@@ -692,8 +699,15 @@ impl<F: Flash> Nvs<F> {
             return Err(Error::BufferTooSmall { needed: 0 });
         };
         if free < 2 {
-            return Err(Error::BufferTooSmall { needed: 0 });
+            return self.compact(page, state, max_seq);
         }
+        self.start_page(page, state, max_seq)?;
+        Ok(page)
+    }
+
+    /// `page`, free, becomes the active page with the next sequence number
+    /// (erased first unless blank).
+    fn start_page(&mut self, page: u32, state: u32, max_seq: Option<u32>) -> Result<()> {
         if state != STATE_UNINITIALIZED {
             self.flash.erase_page(page * PAGE_SIZE)?;
         }
@@ -705,8 +719,120 @@ impl<F: Flash> Nvs<F> {
         let crc = crc32(&h[4..28]);
         h[28..32].copy_from_slice(&crc.to_le_bytes());
         self.flash.write(page * PAGE_SIZE, &h)?;
+        self.index_pages()
+    }
+
+    /// Reclaim the erased entries of one full page, into the reserve page
+    /// `target`: the full page with the most erased entries is the victim;
+    /// its live entries are copied, each header with the data entries of its
+    /// span, into `target`, which becomes the active page; then the victim
+    /// is erased and is the new reserve. Until that erase every value is in
+    /// flash twice, identical. `Err(BufferTooSmall)` when no full page has
+    /// anything to reclaim: the partition is truly full.
+    fn compact(&mut self, target: u32, target_state: u32, max_seq: Option<u32>) -> Result<u32> {
+        let mut victim: Option<(u32, u32)> = None;
+        for page in 0..self.pages {
+            if self.header(page)?.state != STATE_FULL {
+                continue;
+            }
+            let bitmap = self.bitmap(page)?;
+            let erased = (0..ENTRIES_PER_PAGE)
+                .filter(|&i| Self::entry_state(&bitmap, i) == ENTRY_ERASED)
+                .count() as u32;
+            if erased > 0 && victim.is_none_or(|(_, most)| erased > most) {
+                victim = Some((page, erased));
+            }
+        }
+        let Some((victim, _)) = victim else {
+            return Err(Error::BufferTooSmall { needed: 0 });
+        };
+        self.start_page(target, target_state, max_seq)?;
+        let bitmap = self.bitmap(victim)?;
+        let mut i = 0u32;
+        let mut free = 0u32;
+        while i < ENTRIES_PER_PAGE {
+            if Self::entry_state(&bitmap, i) != ENTRY_WRITTEN {
+                i += 1;
+                continue;
+            }
+            let e = self.entry(At {
+                page: victim,
+                index: i,
+            })?;
+            let span = e.span().clamp(1, ENTRIES_PER_PAGE - i);
+            for k in 0..span {
+                let mut raw = [0u8; ENTRY_SIZE as usize];
+                self.flash.read(
+                    victim * PAGE_SIZE + ENTRIES_OFFSET + (i + k) * ENTRY_SIZE,
+                    &mut raw,
+                )?;
+                self.flash.write(
+                    target * PAGE_SIZE + ENTRIES_OFFSET + (free + k) * ENTRY_SIZE,
+                    &raw,
+                )?;
+                self.mark(target, free + k, ENTRY_WRITTEN)?;
+            }
+            free += span;
+            i += span;
+        }
+        self.flash.erase_page(victim * PAGE_SIZE)?;
+        self.ns_cache = None;
+        self.verified = [[0; 2]; VERIFIED_PAGES];
         self.index_pages()?;
-        Ok(page)
+        Ok(target)
+    }
+
+    /// Erase every value that is no longer live from the flash itself.
+    ///
+    /// NVS rewrites and removes by marking the old entry erased in its
+    /// page's bitmap: the old bytes stay on the flash until that page is
+    /// erased, which only a full partition's compaction ever does. For a
+    /// secret that was rewritten -- a passphrase sealed where it lay, a key
+    /// rotated -- that leaves the old value readable off a dumped flash
+    /// (found 2026-10-15 on an encrypted C6: the settings sealed, the
+    /// plaintext still there). This compacts every page that holds an erased
+    /// entry, so each such page is erased once its live entries are copied
+    /// out. Returns the pages scrubbed. Every live value survives it, as
+    /// [`Self::compact`] guarantees for one page.
+    pub fn scrub(&mut self) -> Result<u32> {
+        let mut scrubbed = 0;
+        loop {
+            let mut stale = false;
+            for page in 0..self.pages {
+                let state = self.header(page)?.state;
+                if state != STATE_ACTIVE && state != STATE_FULL {
+                    continue;
+                }
+                let bitmap = self.bitmap(page)?;
+                if (0..ENTRIES_PER_PAGE).any(|i| Self::entry_state(&bitmap, i) == ENTRY_ERASED) {
+                    stale = true;
+                    break;
+                }
+            }
+            if !stale {
+                return Ok(scrubbed);
+            }
+            // one active page at a time: the current one becomes full, so it
+            // can be a victim and the compacted page is the only active one
+            if let Some(active) = self.active_page()? {
+                self.mark_full(active)?;
+            }
+            let mut target = None;
+            let mut max_seq = None;
+            for page in 0..self.pages {
+                let h = self.header(page)?;
+                if h.state == STATE_ACTIVE || h.state == STATE_FULL {
+                    max_seq = Some(max_seq.map_or(h.seq, |m: u32| m.max(h.seq)));
+                } else if target.is_none() {
+                    target = Some((page, h.state));
+                }
+            }
+            let Some((page, state)) = target else {
+                return Err(Error::BufferTooSmall { needed: 0 });
+            };
+            self.compact(page, state, max_seq)?;
+            scrubbed += 1;
+        }
     }
 
     fn mark_full(&mut self, page: u32) -> Result<()> {
@@ -716,7 +842,9 @@ impl<F: Flash> Nvs<F> {
     }
 
     /// The active page with at least `entries` free slots, moving to a
-    /// fresh page when the current one is short.
+    /// fresh page when the current one is short. A fresh page may be a
+    /// compacted one with entries already on it; one that is still short is
+    /// marked full and the next taken, once.
     fn page_with_room(&mut self, entries: u32) -> Result<(u32, u32)> {
         if let Some(page) = self.active_page()? {
             let free = self.next_free(page)?;
@@ -725,8 +853,17 @@ impl<F: Flash> Nvs<F> {
             }
             self.mark_full(page)?;
         }
-        let page = self.activate_page()?;
-        Ok((page, 0))
+        for _ in 0..2 {
+            let page = self.activate_page()?;
+            let free = self.next_free(page)?;
+            if ENTRIES_PER_PAGE - free >= entries {
+                return Ok((page, free));
+            }
+            self.mark_full(page)?;
+        }
+        Err(Error::BufferTooSmall {
+            needed: entries as usize,
+        })
     }
 
     /// Write one entry at a slot and mark it written.
@@ -1098,6 +1235,168 @@ mod tests {
     /// W14: blob reads that take their chunks from the first scan return
     /// what was written, across rewrites, removals, blobs of one chunk and
     /// of more chunks than the reader notes (which falls back to a scan).
+    /// Full pages are compacted, not fatal (E3's C16, 2026-10-04): a
+    /// three-page partition takes a key written once (the device key's
+    /// shape) and a value rewritten far past what two pages hold without
+    /// reclaiming; every live value reads back after each write, and the
+    /// pages never exceed what NVS allows (one in reserve).
+    fn contains(hay: &[u8], needle: &[u8]) -> bool {
+        hay.windows(needle.len()).any(|w| w == needle)
+    }
+
+    /// A rewritten secret stays on the flash until its page is erased (the
+    /// sealed settings on the encrypted C6, 2026-10-15); `scrub` erases it
+    /// and keeps every live value, readable after a fresh open, with a page
+    /// still in reserve.
+    #[test]
+    fn scrub_erases_what_was_rewritten_and_keeps_what_is_live() {
+        let secret = b"hunter2-the-old-passphrase";
+        let mut nvs = Nvs::open(RamFlash::blank(4)).unwrap();
+        nvs.put_blob("janus", "wifi.ssid", b"home-network").unwrap();
+        nvs.put_blob("janus", "wifi.psk", secret).unwrap();
+        nvs.put_blob("janus", "name", b"kitchen").unwrap();
+        // sealed where it lay: the same key, other bytes
+        nvs.put_blob("janus", "wifi.psk", b"\0JS\x01sealed-bytes-now")
+            .unwrap();
+        // and one removed outright
+        nvs.put_blob("janus", "old", b"removed-secret-value")
+            .unwrap();
+        assert!(nvs.remove("janus", "old").unwrap());
+        let image = nvs.into_flash().0;
+        assert!(
+            contains(&image, secret),
+            "the hazard: rewritten, still there"
+        );
+        assert!(
+            contains(&image, b"removed-secret-value"),
+            "removed, still there"
+        );
+
+        let mut nvs = Nvs::open(RamFlash::from_image(&image)).unwrap();
+        assert!(nvs.scrub().unwrap() >= 1);
+        assert_eq!(nvs.scrub().unwrap(), 0, "nothing stale is left to scrub");
+        let image = nvs.into_flash().0;
+        assert!(!contains(&image, secret), "the old passphrase is gone");
+        assert!(
+            !contains(&image, b"removed-secret-value"),
+            "the removed one too"
+        );
+
+        let mut again = Nvs::open(RamFlash::from_image(&image)).unwrap();
+        assert_eq!(
+            get(&mut again, "janus", "wifi.psk").unwrap(),
+            b"\0JS\x01sealed-bytes-now"
+        );
+        assert_eq!(
+            get(&mut again, "janus", "wifi.ssid").unwrap(),
+            b"home-network"
+        );
+        assert_eq!(get(&mut again, "janus", "name").unwrap(), b"kitchen");
+        assert_eq!(get(&mut again, "janus", "old"), None);
+        let actives = (0..4)
+            .filter(|&p| again.header(p).unwrap().state == STATE_ACTIVE)
+            .count();
+        assert_eq!(actives, 1, "one active page");
+        let free = (0..4)
+            .filter(|&p| {
+                let st = again.header(p).unwrap().state;
+                st != STATE_ACTIVE && st != STATE_FULL
+            })
+            .count();
+        assert!(free >= 1, "a reserve page");
+        // and it still takes writes
+        again.put_blob("janus", "wifi.psk", b"rotated").unwrap();
+        assert_eq!(get(&mut again, "janus", "wifi.psk").unwrap(), b"rotated");
+    }
+
+    #[test]
+    fn scrub_on_a_clean_partition_changes_nothing() {
+        let mut nvs = Nvs::open(RamFlash::blank(3)).unwrap();
+        nvs.put_blob("janus", "a", b"one").unwrap();
+        nvs.put_blob("janus", "b", b"two").unwrap();
+        let before = nvs.into_flash().0;
+        let mut nvs = Nvs::open(RamFlash::from_image(&before)).unwrap();
+        assert_eq!(nvs.scrub().unwrap(), 0);
+        assert_eq!(nvs.into_flash().0, before, "not a byte moved");
+    }
+
+    #[test]
+    fn a_full_partition_compacts_and_keeps_every_live_value() {
+        let mut nvs = Nvs::open(RamFlash::blank(3)).unwrap();
+        let key_once = [0x5au8; 32];
+        nvs.put_blob("identity", "device_key", &key_once).unwrap();
+        // 322 bytes, as an adoption record: 11 entries a write; two pages
+        // hold ~22 writes, so 60 rewrites compact several times over
+        let mut record = [0u8; 322];
+        let mut out = [0u8; 400];
+        for round in 0..60u32 {
+            record[..4].copy_from_slice(&round.to_le_bytes());
+            record[4..].fill(round as u8);
+            nvs.put_blob("identity", "adoption", &record)
+                .unwrap_or_else(|e| panic!("round {round}: {e:?}"));
+            nvs.put_blob("identity", "owner_pin", &[round as u8; 48])
+                .unwrap();
+            let n = nvs.get("identity", "adoption", &mut out).unwrap().unwrap();
+            assert_eq!(&out[..n], &record[..], "round {round}: the adoption");
+            let n = nvs.get("identity", "owner_pin", &mut out).unwrap().unwrap();
+            assert_eq!(&out[..n], &[round as u8; 48], "round {round}: the pin");
+            let n = nvs
+                .get("identity", "device_key", &mut out)
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                &out[..n],
+                &key_once[..],
+                "round {round}: the key written once"
+            );
+            // one page free, as NVS requires
+            let free = (0..3)
+                .filter(|&p| {
+                    let st = nvs.header(p).unwrap().state;
+                    st != STATE_ACTIVE && st != STATE_FULL
+                })
+                .count();
+            assert!(free >= 1, "round {round}: no reserve page");
+        }
+        // what came back is readable by a fresh open too
+        let image = nvs.into_flash().0;
+        let mut again = Nvs::open(RamFlash::from_image(&image)).unwrap();
+        let n = again
+            .get("identity", "device_key", &mut out)
+            .unwrap()
+            .unwrap();
+        assert_eq!(&out[..n], &key_once[..]);
+        let n = again
+            .get("identity", "adoption", &mut out)
+            .unwrap()
+            .unwrap();
+        assert_eq!(&out[..4], &59u32.to_le_bytes());
+        assert_eq!(n, 322);
+    }
+
+    /// A partition whose live entries fill both usable pages is truly full:
+    /// the put fails and what was there stays readable.
+    #[test]
+    fn a_truly_full_partition_still_refuses_and_keeps_its_values() {
+        let mut nvs = Nvs::open(RamFlash::blank(3)).unwrap();
+        let mut n = 0;
+        loop {
+            let key = format!("k{n}");
+            match nvs.put_blob("ns", &key, &[n as u8; 200]) {
+                Ok(()) => n += 1,
+                Err(Error::BufferTooSmall { .. }) => break,
+                Err(e) => panic!("{e:?}"),
+            }
+            assert!(n < 200, "never fills");
+        }
+        assert!(n >= 20, "two pages hold more than {n} values of 200 bytes");
+        let mut out = [0u8; 256];
+        for k in 0..n {
+            let got = nvs.get("ns", &format!("k{k}"), &mut out).unwrap().unwrap();
+            assert_eq!(&out[..got], &[k as u8; 200], "k{k} after the refusal");
+        }
+    }
+
     #[test]
     fn noted_chunks_read_back_exactly_what_was_written() {
         let mut nvs = Nvs::open(RamFlash::blank(8)).unwrap();
