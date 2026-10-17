@@ -1,0 +1,48 @@
+﻿   614.8  [espino] reset through COM4 (usb-jtag)
+   617.2  I (95) boot:  6 identity         WiFi data        01 02 007fd000janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4508
+   617.2  janus/cam-page-b: ota slot=Ota0 state=Valid
+   617.3  janus/cam-page-b: ota marked valid (was Valid)
+   617.3  ESP-ROM:esp32s3-20210327
+   617.3  Build:Mar 27 2021
+   617.4  rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+   617.4  Saved PC:0x4207a45f
+   617.4  SPIWP:0xee
+   617.4  mode:DIO, clock div:1
+   617.5  load:0x3fce2820,len:0x158c
+   617.5  load:0x403c8700,len:0xd24
+   617.6  load:0x403cb700,len:0x2f8c
+   617.7  entry 0x403c8924
+   617.8  I (24) boot: ESP-IDF v5.5.1 2nd stage bootloader
+   617.8  I (24) boot: compile time Sep 30 2026 21:01:05
+   617.9  I (25) boot: Multicore bootloader
+   617.9  I (25) boot: chip revision: v0.2
+   617.9  I (28) boot: efuse block revision: v1.4
+   617.9  I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+   618.0  I (35) boot.esp32s3: SPI Mode       : DIO
+   618.0  I (39) boot.esp32s3: SPI Flash Size : 8MB
+   618.0  I (43) boot: Enabling RNG early entropy source...
+   618.0  I (47) boot: Partition Table:
+   618.0  I (50) boot: ## Label            Usage          Type ST Offset   Length
+   618.0  I (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+   618.0  I (62) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+   618.0  I (69) boot:  2 otadata          OTA data         01 00 00010000 00002000
+   618.0  I (75) boot:  3 ota_0            OTA app          00 10 00020000 003e0000
+   618.0  I (82) boot:  4 ota_1            OTA app          00 11 00400000 003e0000
+   618.0  I (89) boot:  5 littlefs         Unknown data     01 83 007e0000 0001d000
+   618.0  I (95) boot:  6 identity         WiFi data        01 02 007fd000 00003000
+   618.1  I (102) boot: End of partition table
+   618.2  I (105) esp_image: segment 0: paddr=00020020 vaddr=3c000020 size=173e4h ( 95204) map
+   618.2  I (129) esp_image: segment 1: paddr=0003740c vaddr=3fc934c8 size=04698h ( 18072) load
+   618.2  I (133) esp_image: segment 2: paddr=0003baac vaddr=40378000 size=0456ch ( 17772) load
+   618.3  I (138) esp_image: segment 3: paddr=00040020 vaddr=42020020 size=7adcch (503244) map
+   618.3  I (229) esp_image: segment 4: paddr=000badf4 vaddr=4037c56c size=06f5ch ( 28508) load
+   618.3  I (241) boot: Loaded app from partition at offset 0x20000
+   618.3  I (241) boot: Disabling RNG early entropy source...
+   618.3  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4079
+   618.3  janus/cam-page-b: ota slot=Ota0 state=Valid
+   618.4  janus/cam-page-b: ota marked valid (was Valid)
+   858.4  janus/cam-page-b: sensor OV3660 configured=Ok(()) fps_cap=15 quality_scale=12
+  1485.4  janus/cam-page-b: network hosting janus-cam (wpa2, up to 4 stations)
+  1487.6  janus/cam-page-b: page http://192.168.71.1/?t=<token>  (stream at /stream; the page and the stream need the t= token, this device's own) join_ms=1016 dhcp_ms=1016
+  1491.7  janus/cam-page-b: camera task up, fps_cap=15
+  9665.6  [espino] done: timeout after 46 lines

@@ -1,0 +1,22 @@
+[espino] reset through COM4 (usb-jtag)
+rusty_esp_boot: ota_0 otadata seq 0 state Undefined
+rusty_esp_boot: otadata[0] was blank: ota_0 written as seq 1 Valid
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 541536 B, 5 segments, 61904 B into RAM, entry 0x403788d0; ms: rom 28 table 6 load 125 signature 0, 184 since reset; cpu 80 MHz sysclk=0xa8400 cpu_per=0xc
+== JANUS PAGE xiao-s3 track=B ==
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x420700c3
+SPIWP:0xee
+mode:DIO, clock div:2
+load:0x3fce2700,len:0xeb4
+load:0x403cb800,len:0x4280
+load:0x403cfa80,len:0x598
+entry 0x403cfb20
+rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 clk=0x10001
+rusty_esp_boot: ota_0 otadata seq 1 state Valid
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 541536 B, 5 segments, 61904 B into RAM, entry 0x403788d0; ms: rom 28 table 6 load 125 signature 0, 160 since reset; cpu 80 MHz sysclk=0xa8400 cpu_per=0xc
+== JANUS PAGE xiao-s3 track=B ==
+PAGE sensor=OV3660 configured=Ok(())
+[espino] expected line seen: "PAGE sensor="
+[espino] done: expect after 19 lines

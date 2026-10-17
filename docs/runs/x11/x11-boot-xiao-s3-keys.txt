@@ -1,0 +1,42 @@
+[espino] reset through COM4 (usb-jtag)
+rusty_esp_boot: otadata[0] was blank: ota_0 written as seq 1 Val== JANUS KEYS xiao-s3 ==
+KEY kernel=bare-metal
+KEY cpu_mhz=240 iterations=100 rung=core-only
+KEY partition=identity offset=0x7fd000 len=0x3000
+KEY identity=loaded did=did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J us=78201
+KEY partition=nvs offset=0x9000 len=0x6000
+KEY nvs.janus.name=absent
+KEY nvs.janus.wifi.ssid=absent
+KEY nvs.janus.wifi.psk=absent
+KEY nvs.janus.maker=absent
+KEY op=generate n=1 min_us=76357 median_us=76357 max_us=76357 min_cycles=18325680 median_cycles=18325680
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x42034caa
+SPIWP:0xee
+mode:DIO, clock div:2
+load:0x3fce2700,len:0xeb4
+load:0x403cb800,len:0x4280
+load:0x403cfa80,len:0x598
+entry 0x403cfb20
+rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 clk=0x10001
+rusty_esp_boot: ota_0 otadata seq 1 state Valid
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 249264 B, 5 segments, 9908 B into RAM, entry 0x403785ec; ms: rom 28 table 6 load 57 signature 0, 92 since reset; cpu 80 MHz sysclk=0xa8400 cpu_per=0xc
+== JANUS KEYS xiao-s3 ==
+KEY kernel=bare-metal
+KEY cpu_mhz=240 iterations=100 rung=core-only
+KEY partition=identity offset=0x7fd000 len=0x3000
+KEY identity=loaded did=did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J us=78201
+KEY partition=nvs offset=0x9000 len=0x6000
+KEY nvs.janus.name=absent
+KEY nvs.janus.wifi.ssid=absent
+KEY nvs.janus.wifi.psk=absent
+KEY nvs.janus.maker=absent
+KEY op=generate n=1 min_us=76356 median_us=76356 max_us=76356 min_cycles=18325440 median_cycles=18325440
+KEY op=sign n=100 min_us=94948 median_us=94973 max_us=95020 min_cycles=22787520 median_cycles=22793520
+KEY op=verify n=100 min_us=151776 median_us=151961 max_us=152616 min_cycles=36426240 median_cycles=36470640
+KEY verify_ok=100/100
+KEY work signs=100 verifies=100 prehash_bytes=32
+MEM used=0 free=65536
+[espino] done: timeout after 40 lines

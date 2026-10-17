@@ -141,7 +141,10 @@ mod tests {
     #[test]
     fn a_host_build_claims_no_port() {
         assert_eq!(port_name(), None);
-        assert!(!compat::HOSTS_ESP_RADIO);
+        // a compile-time constant, so it is checked at compile time:
+        // clippy 1.99's `assertions_on_constants` asks for the const block,
+        // and it is the stronger statement anyway
+        const { assert!(!compat::HOSTS_ESP_RADIO) };
     }
 
     /// The window is stated, not implied.

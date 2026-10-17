@@ -1,0 +1,22 @@
+=== kill test 23:24:56
+[ok] sign: F:/jt-x8/good2.bin -> F:\jt-x8\good-signed.bin (667648 B): F:\jt-x8\good-signed.bin: 667648 bytes, one secure boot v2 signature block (RSA-3072 PSS); the image was 662912 bytes
+[ok] tamper: F:\jt-x8\flip-hash.bin: byte 0x1000 flipped; the signature sector is unchanged | F:\jt-x8\flip-sig.bin: byte 0x1000 flipped, checksum and SHA-256 repaired; the signature sector is unchanged
+[ok] table: F:\coding\janus\espino\partitions\mesh_ota_8mb.csv -> F:\jt-x0\run\x8-table.bin
+23:24:57 loader sb: F:\jt-x8\boot-sb.bin (21568 B) at 0x0, the table, otadata and ota_1's first sector erased
+23:25:01 sb/unsigned : F:/jt-x8/good2.bin at 0x20000
+[FAIL] sb/unsigned: expected /refused: signature NoSignature/: False; the app booted: False (should: False)
+23:25:16 sb/flip-hash : F:\jt-x8\flip-hash.bin at 0x20000
+[ok] sb/flip-hash: expected /refused: (Sha256|Checksum)/: True; the app booted: False (should: False)
+23:25:36 sb/flip-sig : F:\jt-x8\flip-sig.bin at 0x20000
+[ok] sb/flip-sig: expected /refused: signature (Rejected|DigestMismatch)/: True; the app booted: False (should: False)
+23:25:57 sb/signed-good : F:\jt-x8\good-signed.bin at 0x20000
+[ok] sb/signed-good: expected /Loaded app from partition at offset 0x20000/: True; the app booted: True (should: True)
+23:26:41 loader open: F:\jt-x8\boot-open.bin (21504 B) at 0x0, the table, otadata and ota_1's first sector erased
+23:26:45 open/flip-hash : F:\jt-x8\flip-hash.bin at 0x20000
+[ok] open/flip-hash: expected /refused: (Sha256|Checksum)/: True; the app booted: False (should: False)
+23:27:06 open/flip-sig : F:\jt-x8\flip-sig.bin at 0x20000
+[ok] open/flip-sig: expected /Loaded app from partition at offset 0x20000/: True; the app booted: True (should: True)
+23:27:49 open/unsigned : F:/jt-x8/good2.bin at 0x20000
+[ok] open/unsigned: expected /Loaded app from partition at offset 0x20000/: True; the app booted: True (should: True)
+=== NOT AS PLANNED: 6 of 7 cases
+=== done 23:28:33

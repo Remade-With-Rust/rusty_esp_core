@@ -1,0 +1,429 @@
+[espino] reset through COM4 (usb-jtag)
+rusty_esp_boot: ota_0 otadata seq 0 state Undefined
+KERNEL name=rom_memcpy_64 unit=byte units=1790272 reps=27973 us=100003 ps_per_unit=55859 work_px=0 work_blocks=0 work_bytes=1790336
+ROMAB name=rom_memcpy_64 arm=rom checksum=0x40f200
+KERNEL name=rom_memcpy_256 unit=byte units=5044480 reps=19705 us=100002 ps_per_unit=19824 work_px=0 work_blocks=0 work_bytes=5044736
+ROMAB name=rom_memcpy_256 arm=rom checksum=0x1003700
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x2b (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40056f68
+SPIWP:0xee
+mode:DIO, clock div:2
+load:0x3fce2700,len:0xeb4
+load:0x403cb800,len:0x4280
+load:0x403cfa80,len:0x598
+entry 0x403cfb20
+rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 clk=0x10001
+rusty_esp_boot: ota_0 otadata seq 1 state Valid
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 549248 B, 5 segments, 9152 B into RAM, entry 0x403785d4; ms: rom 28 table 6 load 126 signature 0, 161 since reset; cpu 80 MHz sysclk=0xa8400 cpu_per=0xc
+== JANUS PROBE xiao-s3 ==
+PROBE allocator=esp-alloc heap_bytes=196608
+PROBE frame=160x120 px=19200 budget_us=100000
+MEM stage=boot alloc=esp-alloc used=0 free=196608 total=196608 budget=196608
+MEM stage=boot detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 0, free: 196608, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 0 }
+ROMAB arm=rom families=mem,int64,f64,f32 n=1024 bytes=4096
+KERNEL name=rom_memcpy_16 unit=byte units=501664 reps=31354 us=100002 ps_per_unit=199340 work_px=0 work_blocks=0 work_bytes=501680
+ROMAB name=rom_memcpy_16 arm=rom checksum=0x102100
+KERNEL name=rom_memcpy_64 unit=byte units=1790208 reps=27972 us=100000 ps_per_unit=55859 work_px=0 work_blocks=0 work_bytes=1790272
+ROMAB name=rom_memcpy_64 arm=rom checksum=0x40f200
+KERNEL name=rom_memcpy_256 unit=byte units=5044480 reps=19705 us=100002 ps_per_unit=19824 work_px=0 work_blocks=0 work_bytes=5044736
+ROMAB name=rom_memcpy_256 arm=rom checksum=0x1003700
+KERNEL name=rom_memcpy_4096 unit=byte units=11681792 reps=2852 us=100033 ps_per_unit=8563 work_px=0 work_blocks=0 work_bytes=11685888
+ROMAB name=rom_memcpy_4096 arm=rom checksum=0x10009600
+KERNEL name=rom_memcpy_4096_unaligned unit=byte units=8515584 reps=2079 us=100011 ps_per_unit=11744 work_px=0 work_blocks=0 work_bytes=8519680
+ROMAB name=rom_memcpy_4096_unaligned arm=rom checksum=0x1079
+KERNEL name=rom_memset_4096 unit=byte units=21073920 reps=5145 us=100013 ps_per_unit=4745 work_px=0 work_blocks=0 work_bytes=21078016
+ROMAB name=rom_memset_4096 arm=rom checksum=0x5a5a
+KERNEL name=rom_memmove_4096 unit=byte units=761856 reps=93 us=100393 ps_per_unit=131774 work_px=0 work_blocks=0 work_bytes=770048
+ROMAB name=rom_memmove_4096 arm=rom checksum=0x9679
+KERNEL name=rom_memcmp_4096 unit=byte units=2842624 reps=694 us=100071 ps_per_unit=35203 work_px=0 work_blocks=0 work_bytes=2846720
+ROMAB name=rom_memcmp_4096 arm=rom checksum=0x2001
+KERNEL name=rom_udivdi3 unit=div units=64512 reps=63 us=100279 ps_per_unit=1554423 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_udivdi3 arm=rom checksum=0x1ff5ed88357
+KERNEL name=rom_umoddi3 unit=mod units=58368 reps=57 us=100129 ps_per_unit=1715477 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_umoddi3 arm=rom checksum=0x2002f264bfb
+KERNEL name=rom_divdi3 unit=div units=55296 reps=54 us=100504 ps_per_unit=1817563 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_divdi3 arm=rom checksum=0xa12774a9
+KERNEL name=rom_adddf3 unit=op units=141312 reps=138 us=100411 ps_per_unit=710562 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_adddf3 arm=rom checksum=0x408fffb95ac43a5d
+KERNEL name=rom_muldf3 unit=op units=78848 reps=77 us=100025 ps_per_unit=1268580 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_muldf3 arm=rom checksum=0x3feee8e408603407
+KERNEL name=rom_divdf3 unit=op units=15360 reps=15 us=106243 ps_per_unit=6916861 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_divdf3 arm=rom checksum=0x3ff0907a22f5c262
+KERNEL name=rom_cmpdf2 unit=op units=141312 reps=138 us=100231 ps_per_unit=709288 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_cmpdf2 arm=rom checksum=0x1e5
+KERNEL name=rom_fixdfsi unit=op units=29696 reps=29 us=100073 ps_per_unit=3369915 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_fixdfsi arm=rom checksum=0x3d087746
+KERNEL name=rom_floatsidf unit=op units=86016 reps=84 us=100231 ps_per_unit=1165259 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_floatsidf arm=rom checksum=0x4188b11000000000
+KERNEL name=rom_cos_f64 unit=op units=4096 reps=4 us=113329 ps_per_unit=27668212 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_cos_f64 arm=rom checksum=0x40814a6351bc4404
+KERNEL name=rom_divsf3 unit=op units=135168 reps=132 us=100108 ps_per_unit=740619 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_divsf3 arm=rom checksum=0x3f8483e9
+KERNEL name=rom_mulsf3_fpu unit=op units=868352 reps=848 us=100080 ps_per_unit=115252 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_mulsf3_fpu arm=rom checksum=0x3f774709
+KERNEL name=rom_addsf3_fpu unit=op units=868352 reps=848 us=100058 ps_per_unit=115227 work_px=0 work_blocks=0 work_bytes=0
+ROMAB name=rom_addsf3_fpu arm=rom checksum=0x447ffdc9
+ROMAB arm=rom done
+MEM stage=after_romab alloc=esp-alloc used=0 free=196608 total=196608 budget=196608
+MEM stage=after_romab detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 0, free: 196608, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 0 }
+PIE == semantics, read off the silicon ==
+PIE ld/st roundtrip    a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q0=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q1=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE vunzip.8           a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q0=[00, 02, 04, 06, 08, 0a, 0c, 0e, 10, 12, 14, 16, 18, 1a, 1c, 1e]
+PIE                    q1=[01, 03, 05, 07, 09, 0b, 0d, 0f, 11, 13, 15, 17, 19, 1b, 1d, 1f]
+PIE                    q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE vzip.8             a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q0=[00, 10, 01, 11, 02, 12, 03, 13, 04, 14, 05, 15, 06, 16, 07, 17]
+PIE                    q1=[08, 18, 09, 19, 0a, 1a, 0b, 1b, 0c, 1c, 0d, 1d, 0e, 1e, 0f, 1f]
+PIE                    q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE vunzip.16          a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q0=[00, 01, 04, 05, 08, 09, 0c, 0d, 10, 11, 14, 15, 18, 19, 1c, 1d]
+PIE                    q1=[02, 03, 06, 07, 0a, 0b, 0e, 0f, 12, 13, 16, 17, 1a, 1b, 1e, 1f]
+PIE                    q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE vadds.s8           a=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    b=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q0=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q1=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q2=[7f, 7f, 80, 80, 02, fe, 7f, 02, 80, fe, 00, 00, 7f, 7f, 80, 80]
+PIE vsubs.s8           a=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    b=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q0=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q2=[10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+PIE vadds.s16          a=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    b=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q0=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q1=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q2=[ff, 7f, 00, 80, 02, fe, fe, 02, 00, ff, 00, 00, ff, 7f, 80, 81]
+PIE vmax.s8            a=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    b=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q0=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q2=[7f, 7f, 02, 03, 04, 05, 7f, 07, 08, 09, 0a, 0b, 40, 40, 0e, 0f]
+PIE vmax.s16           a=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    b=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q0=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q2=[7f, 7f, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 40, 40, 0e, 0f]
+PIE vmin.s8            a=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    b=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q0=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q2=[00, 01, 80, 80, 01, ff, 06, 01, 80, ff, 00, 00, 0c, 0d, c0, c0]
+PIE andq               a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q0=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q1=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q2=[00, 01, 00, 00, 00, 05, 06, 01, 00, 09, 00, 00, 00, 00, 00, 00]
+PIE xorq               a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q0=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    q1=[7f, 7f, 80, 80, 01, ff, 7f, 01, 80, ff, 00, 00, 40, 40, c0, c0]
+PIE                    q2=[7f, 7e, 82, 83, 05, fa, 79, 06, 88, f6, 0a, 0b, 4c, 4d, ce, cf]
+PIE qacc.s16 a=[01, 00, 02, 00, 03, 00, 04, 00, 05, 00, 06, 00, 07, 00, 08, 00]
+PIE                    b=[01, 00, 01, 00, 01, 00, 01, 00, 01, 00, 01, 00, 01, 00, 01, 00]
+PIE                    qacc_l=[01, 00, 00, 00, 00, 02, 00, 00, 00, 00, 03, 00, 00, 00, 00, 04]
+PIE                    qacc_h=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE srci.2q 8          a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q0=[09, 0a, 0b, 0c, 0d, 0e, 0f, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE                    q1=[19, 1a, 1b, 1c, 1d, 1e, 1f, 00, 01, 02, 03, 04, 05, 06, 07, 08]
+PIE                    q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE slci.2q 8          a=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+PIE                    b=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+PIE                    q0=[17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f, 00, 01, 02, 03, 04, 05, 06]
+PIE                    q1=[00, 00, 00, 00, 00, 00, 00, 00, 00, 10, 11, 12, 13, 14, 15, 16]
+PIE                    q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE srcmb.s16 in=[10, 00, 20, 00, 30, 00, 40, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE                    out(shift 2)=[04, 00, 08, 00, 0c, 00, 10, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+PIE accx.s16 lanes=1..8 xone -> accx_0=36 accx_1=0 (36=all eight, 10=four)
+PIE == end ==
+MEM stage=buffers alloc=esp-alloc used=172800 free=23808 total=196608 budget=196608
+MEM stage=buffers detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 172800, free: 23808, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 172800 }
+KERNEL name=yuyv_to_gray8 unit=px units=1996800 reps=104 us=100221 ps_per_unit=50190 work_px=2016000 work_blocks=0 work_bytes=0
+KERNEL name=yuyv_to_rgb565 unit=px units=268800 reps=14 us=106369 ps_per_unit=395718 work_px=288000 work_blocks=0 work_bytes=0
+KERNEL name=yuyv_to_rgb888 unit=px units=307200 reps=16 us=102831 ps_per_unit=334736 work_px=326400 work_blocks=0 work_bytes=0
+KERNEL name=rgb565_to_rgb888 unit=px units=384000 reps=20 us=104517 ps_per_unit=272179 work_px=403200 work_blocks=0 work_bytes=0
+KERNEL name=rgb888_to_rgb565 unit=px units=499200 reps=26 us=103491 ps_per_unit=207313 work_px=518400 work_blocks=0 work_bytes=0
+KERNEL name=downscale2x_gray8 unit=px_out units=465600 reps=97 us=100659 ps_per_unit=216192 work_px=470400 work_blocks=0 work_bytes=0
+KERNEL name=downscale2x_rgb565 unit=px_out units=81600 reps=17 us=106044 ps_per_unit=1299558 work_px=86400 work_blocks=0 work_bytes=0
+PIEKERNEL yuyv_to_gray8 identical=true src_align=0 dst_align=0
+KERNEL name=yuyv_gray8_scalar unit=px units=1865728 reps=911 us=100102 ps_per_unit=53653 work_px=1867776 work_blocks=0 work_bytes=0
+KERNEL name=yuyv_gray8_pie unit=px units=14723072 reps=7189 us=100001 ps_per_unit=6792 work_px=14725120 work_blocks=0 work_bytes=0
+PIEKERNEL peak_abs_i16 identical=true scalar=32768 pie=32768 align=0
+KERNEL name=peak_abs_scalar unit=sample units=1304576 reps=637 us=100075 ps_per_unit=76710 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=peak_abs_pie unit=sample units=9781248 reps=4776 us=100001 ps_per_unit=10223 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL sad_16x16 identical=true scalar=8192 pie=8192 align=0
+KERNEL name=sad16_scalar unit=block units=2929 reps=2929 us=100022 ps_per_unit=34148856 work_px=0 work_blocks=2930 work_bytes=0
+KERNEL name=sad16_pie unit=block units=13150 reps=13150 us=100006 ps_per_unit=7605019 work_px=0 work_blocks=13151 work_bytes=0
+PIEKERNEL sad_8x8 identical=true scalar=2048 pie=2048
+KERNEL name=sad8_scalar unit=block units=8551 reps=8551 us=100005 ps_per_unit=11695123 work_px=0 work_blocks=8552 work_bytes=0
+KERNEL name=sad8_pie unit=block units=21838 reps=21838 us=100001 ps_per_unit=4579219 work_px=0 work_blocks=21839 work_bytes=0
+PIEKERNEL sum_sq_i16 identical=true scalar=1173538471099 pie=1173538471099
+KERNEL name=sumsq_scalar unit=sample units=636928 reps=311 us=100257 ps_per_unit=157407 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=sumsq_pie unit=sample units=9992192 reps=4879 us=100003 ps_per_unit=10008 work_px=0 work_blocks=0 work_bytes=0
+P3 unaligned off=0 q2=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+P3 unaligned off=3 q2=[03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f, 10, 11, 12]
+P3 unaligned off=7 q2=[07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f, 10, 11, 12, 13, 14, 15, 16]
+P3 vld.l.64        q0=[00, 01, 02, 03, 04, 05, 06, 07, ff, ff, ff, ff, ff, ff, ff, ff]
+P3 vld.h.64        q1=[ff, ff, ff, ff, ff, ff, ff, ff, 00, 01, 02, 03, 04, 05, 06, 07]
+P3 movi.32.q l2    q0=[00, 00, 00, 00, 00, 00, 00, 00, ef, be, ad, de, 00, 00, 00, 00]
+P3 srcmb sh=0       q2=[06, 00, 0a, 00, 0e, 00, 12, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+P3 srcmb sh=2       q2=[01, 00, 02, 00, 03, 00, 04, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+P3 == end ==
+P2 == second tier ==
+P2 vsr.32 sar=4     q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+P2                  q2=[00, e0, ff, ff, 10, 00, f0, ff, 00, f0, ff, ff, ff, 07, 00, f8]
+P2 vsl.32 sar=4     q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+P2                  q2=[20, 00, e0, ff, 00, 10, 00, f0, 10, 00, f0, ff, f0, ff, 07, 00]
+P2 vsr.32 sar=0     q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+P2                  q2=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2 vmul.s16         q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00]
+P2                  q2=[06, 00, fa, ff, 00, 03, 00, fd, 03, 00, fd, ff, fd, 7f, 00, 80]
+P2 vadds.s32        q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q2=[04, 00, fc, ff, 00, 02, 00, fe, 02, 00, fe, ff, 00, 00, 00, 80]
+P2 vsubs.s32        q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+P2                  q2=[02, ff, fb, fc, fc, fb, f9, f7, f9, f6, f4, f4, 00, 00, 00, 80]
+P2 vcmp.lt.s16      q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00]
+P2                  q2=[ff, ff, ff, ff, 00, 00, ff, ff, ff, ff, ff, ff, 00, 00, ff, ff]
+P2 vcmp.gt.s16      q0=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q1=[03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00, 03, 00]
+P2                  q2=[00, 00, 00, 00, ff, ff, 00, 00, 00, 00, 00, 00, ff, ff, 00, 00]
+P2 vzip.32          q0=[00, 01, 02, 03, 02, 00, fe, ff, 04, 05, 06, 07, 00, 01, 00, ff]
+P2                  q1=[08, 09, 0a, 0b, 01, 00, ff, ff, 0c, 0d, 0e, 0f, ff, 7f, 00, 80]
+P2                  q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+P2 vunzip.32        q0=[00, 01, 02, 03, 08, 09, 0a, 0b, 02, 00, fe, ff, 01, 00, ff, ff]
+P2                  q1=[04, 05, 06, 07, 0c, 0d, 0e, 0f, 00, 01, 00, ff, ff, 7f, 00, 80]
+P2                  q2=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00]
+P2 notq             q0=[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f]
+P2                  q1=[02, 00, fe, ff, 00, 01, 00, ff, 01, 00, ff, ff, ff, 7f, 00, 80]
+P2                  q2=[ff, fe, fd, fc, fb, fa, f9, f8, f7, f6, f5, f4, f3, f2, f1, f0]
+P2 == end ==
+ACCXW value=-1 accx_0=0xffffffff accx_1=0x000000ff
+ACCXW value=-2 accx_0=0xfffffffe accx_1=0x000000ff
+ACCXW value=+1 accx_0=0x00000001 accx_1=0x00000000
+ACCXW value=-32768*32767 accx_0=0xc0008000 accx_1=0x000000ff
+PIEKERNEL dot_i16 identical=true negative=true scalar=-3120019257 pie=-3120019257
+KERNEL name=dot_scalar unit=sample units=405504 reps=198 us=100362 ps_per_unit=247499 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=dot_pie unit=sample units=8812544 reps=4303 us=100005 ps_per_unit=11348 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL sum_sq_i16_le identical=true scalar=(1173538471099, 2048) pie=(1173538471099, 2048)
+KERNEL name=sumsq_le_scalar unit=sample units=534528 reps=261 us=100162 ps_per_unit=187384 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=sumsq_le_pie unit=sample units=9592832 reps=4684 us=100011 ps_per_unit=10425 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL rms_dbfs_i16 identical=true scalar=-2.7273254 pie=-2.7273254
+KERNEL name=rms_scalar unit=sample units=528384 reps=258 us=100183 ps_per_unit=189602 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=rms_pie unit=sample units=7892992 reps=3854 us=100025 ps_per_unit=12672 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL mix_i16 identical=true
+KERNEL name=mix_element unit=sample units=5976064 reps=11672 us=100006 ps_per_unit=16734 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=mix_pie unit=sample units=6435328 reps=12569 us=100004 ps_per_unit=15539 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL mono_to_stereo identical=true
+KERNEL name=upmix_element unit=sample units=2718300 reps=10660 us=100007 ps_per_unit=36790 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=upmix_pie unit=sample units=3600855 reps=14121 us=100005 ps_per_unit=27772 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL downscale2x_gray8 identical=true src_align=0 dst_align=0
+KERNEL name=dscale_gray_scalar unit=px_out units=423936 reps=828 us=100039 ps_per_unit=235976 work_px=424448 work_blocks=0 work_bytes=0
+KERNEL name=dscale_gray_pie unit=px_out units=1547776 reps=3023 us=100012 ps_per_unit=64616 work_px=1548288 work_blocks=0 work_bytes=0
+PIEKERNEL stereo_to_mono identical=true
+KERNEL name=downmix_element unit=sample units=2294528 reps=8963 us=100004 ps_per_unit=43583 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=downmix_pie unit=sample units=2483456 reps=9701 us=100003 ps_per_unit=40267 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED offset_a=2 offset_b=2
+PIEKERNEL sum_sq_i16_unaligned identical=true scalar=1172464729275 pie=1172464729275
+KERNEL name=sumsq_un_scalar unit=sample units=636617 reps=311 us=100257 ps_per_unit=157484 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=sumsq_un_pie unit=sample units=8378371 reps=4093 us=100024 ps_per_unit=11938 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL peak_abs_i16_unaligned identical=true scalar=32768 pie=32768
+KERNEL name=peak_un_scalar unit=sample units=1303939 reps=637 us=100149 ps_per_unit=76804 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=peak_un_pie unit=sample units=9053881 reps=4423 us=100021 ps_per_unit=11047 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL dot_i16_unaligned identical=true negative=true scalar=-2046310201 pie=-2046310201
+KERNEL name=dot_un_scalar unit=sample units=388930 reps=190 us=100176 ps_per_unit=257568 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=dot_un_pie unit=sample units=4198397 reps=2051 us=100048 ps_per_unit=23830 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED sad stride=17 off_a=3 off_b=5 len=340
+PIEKERNEL sad_16x16_unaligned identical=true scalar=22172 pie=22172
+KERNEL name=sad16_un_scalar unit=block units=2933 reps=2933 us=100012 ps_per_unit=34098874 work_px=0 work_blocks=2934 work_bytes=0
+KERNEL name=sad16_un_pie unit=block units=10438 reps=10438 us=100004 ps_per_unit=9580762 work_px=0 work_blocks=10439 work_bytes=0
+PIEKERNEL sad_8x8_unaligned identical=true scalar=6164 pie=6164
+KERNEL name=sad8_un_scalar unit=block units=8551 reps=8551 us=100001 ps_per_unit=11694655 work_px=0 work_blocks=8552 work_bytes=0
+KERNEL name=sad8_un_pie unit=block units=18853 reps=18853 us=100000 ps_per_unit=5304195 work_px=0 work_blocks=18854 work_bytes=0
+PIEUNALIGNED le off=2
+PIEKERNEL sum_sq_i16_le_unaligned identical=true scalar=(1172464729275, 2047) pie=(1172464729275, 2047)
+KERNEL name=sumsqle_un_scalar unit=sample units=534267 reps=261 us=100144 ps_per_unit=187441 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=sumsqle_un_pie unit=sample units=7739707 reps=3781 us=100025 ps_per_unit=12923 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL rms_dbfs_i16_unaligned identical=true scalar=-2.7291794 pie=-2.7291794
+KERNEL name=rms_un_scalar unit=sample units=528126 reps=258 us=100170 ps_per_unit=189670 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=rms_un_pie unit=sample units=6607716 reps=3228 us=100004 ps_per_unit=15134 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED yuyv src_off=2 dst_off=0 px=2047
+PIEKERNEL yuyv_to_gray8_unaligned identical=true
+KERNEL name=yuyv_un_scalar unit=px units=2233277 reps=1091 us=100021 ps_per_unit=44786 work_px=2235324 work_blocks=0 work_bytes=0
+KERNEL name=yuyv_un_pie unit=px units=12380256 reps=6048 us=100005 ps_per_unit=8077 work_px=12382303 work_blocks=0 work_bytes=0
+PIEUNALIGNED elemwise src_a=2 src_b=2 dst=0
+PIEKERNEL mix_i16_unaligned identical=true
+KERNEL name=mix_un_element unit=sample units=3231648 reps=6412 us=100007 ps_per_unit=30946 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=mix_un_pie unit=sample units=3326904 reps=6601 us=100002 ps_per_unit=30058 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL mono_to_stereo_unaligned identical=true
+KERNEL name=upmix_un_element unit=sample units=2708656 reps=10922 us=100002 ps_per_unit=36919 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=upmix_un_pie unit=sample units=3502752 reps=14124 us=100007 ps_per_unit=28550 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL stereo_to_mono_unaligned identical=true
+KERNEL name=downmix_un_element unit=sample units=1727072 reps=6964 us=100002 ps_per_unit=57902 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=downmix_un_pie unit=sample units=1947544 reps=7853 us=100011 ps_per_unit=51352 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED downscale src=1 dst=0 out_px=448
+PIEKERNEL downscale2x_gray8_unaligned identical=true
+KERNEL name=dscale_un_scalar unit=px_out units=443072 reps=989 us=100043 ps_per_unit=225794 work_px=443520 work_blocks=0 work_bytes=0
+KERNEL name=dscale_un_pie unit=px_out units=738752 reps=1649 us=100034 ps_per_unit=135409 work_px=739200 work_blocks=0 work_bytes=0
+P4 srcmb sel=0        q2=[06, 00, 0a, 00, 0e, 00, 12, 00, 16, 00, 1a, 00, 1e, 00, 22, 00]
+P4 srcmb sel=1        q2=[06, 00, 0a, 00, 0e, 00, 12, 00, 16, 00, 1a, 00, 1e, 00, 22, 00]
+P4 srcmb neg sh=2     q2=[fe, ff, fd, ff, fc, ff, fb, ff, 00, 00, 00, 00, 00, 00, 00, 00]
+P4 vldbc.16 0x1234    q0=[34, 12, 34, 12, 34, 12, 34, 12, 34, 12, 34, 12, 34, 12, 34, 12]
+P4 bitrev ramp        q0=[10, 00, 88, 00, 48, 00, c8, 00, 28, 00, a8, 00, 68, 00, e8, 00]
+P4 == end ==
+PIEKERNEL gain q15=16422 element_q15=16422
+PIEKERNEL gain_i16 identical=true align=0
+KERNEL name=gain_element unit=sample units=3578400 reps=7100 us=100002 ps_per_unit=27946 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=gain_pie unit=sample units=3852072 reps=7643 us=100003 ps_per_unit=25960 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL gain_i16_unaligned identical=true src_off=2
+KERNEL name=gain_un_element unit=sample units=2872296 reps=5699 us=100013 ps_per_unit=34819 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=gain_un_pie unit=sample units=2940840 reps=5835 us=100003 ps_per_unit=34004 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED convert src=0 dst=0
+PIEKERNEL convert_i16_to_i32 identical=true
+KERNEL name=cvt_16_32_scalar unit=sample units=558592 reps=2182 us=100033 ps_per_unit=179080 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt_16_32_pie unit=sample units=4517632 reps=17647 us=100002 ps_per_unit=22135 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL convert_i32_to_i16 identical=true
+KERNEL name=cvt_32_16_scalar unit=sample units=612608 reps=2393 us=100033 ps_per_unit=163290 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt_32_16_pie unit=sample units=4759040 reps=18590 us=100001 ps_per_unit=21012 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL convert_i32_to_i24in32 identical=true
+KERNEL name=cvt_32_24_scalar unit=sample units=209408 reps=818 us=100052 ps_per_unit=477784 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt_32_24_pie unit=sample units=4004608 reps=15643 us=100000 ps_per_unit=24971 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED cvt16 src=2
+PIEKERNEL convert_i16_to_i32_unaligned identical=true
+KERNEL name=cvt1632_un_scalar unit=sample units=554880 reps=2312 us=100042 ps_per_unit=180294 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt1632_un_pie unit=sample units=2808720 reps=11703 us=100000 ps_per_unit=35603 work_px=0 work_blocks=0 work_bytes=0
+PIEUNALIGNED cvt32 src=4
+PIEKERNEL convert_i32_to_i16_unaligned identical=true
+KERNEL name=cvt3216_un_scalar unit=sample units=607777 reps=2543 us=100004 ps_per_unit=164540 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt3216_un_pie unit=sample units=2971248 reps=12432 us=100000 ps_per_unit=33655 work_px=0 work_blocks=0 work_bytes=0
+PIECVTEQ n=200 fused_body=192 identical=true
+KERNEL name=cvt3216_eq_w16 unit=sample units=3430800 reps=17154 us=100004 ps_per_unit=29148 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt3216_eq_w24_fused unit=sample units=4057800 reps=20289 us=100000 ps_per_unit=24643 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL convert_i32_to_i24in32_unaligned identical=true
+KERNEL name=cvt3224_un_scalar unit=sample units=208886 reps=874 us=100040 ps_per_unit=478921 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt3224_un_pie unit=sample units=2989651 reps=12509 us=100000 ps_per_unit=33448 work_px=0 work_blocks=0 work_bytes=0
+PIEPRECOND rotate90 w%8=0 h%8=0 src_align=0 dst_align=0
+PIEKERNEL rotate90_gray8 identical=true
+KERNEL name=rot90_scalar unit=px units=8111616 reps=5281 us=100013 ps_per_unit=12329 work_px=8113152 work_blocks=0 work_bytes=0
+KERNEL name=rot90_pie unit=px units=10168320 reps=6620 us=100014 ps_per_unit=9835 work_px=10169856 work_blocks=0 work_bytes=0
+PIESEAM sum_sq agree=true seam=1173538471099 direct=1173538471099 oracle=1173538471099
+KERNEL name=seam_sumsq unit=sample units=10452992 reps=5104 us=100001 ps_per_unit=9566 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=seam_peak unit=sample units=9701376 reps=4737 us=100019 ps_per_unit=10309 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=seam_yuyv_gray8 unit=px units=11711488 reps=11437 us=100003 ps_per_unit=8538 work_px=11712512 work_blocks=0 work_bytes=0
+PIEAUDIO rms agree=true audio=-2.7273254 direct=-2.7273254 oracle=-2.7273254
+PIEAUDIO peak agree=true audio=32768 direct=32768
+KERNEL name=audio_rms unit=sample units=7868416 reps=3842 us=100005 ps_per_unit=12709 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=audio_peak unit=sample units=9736192 reps=4754 us=100016 ps_per_unit=10272 work_px=0 work_blocks=0 work_bytes=0
+PIECONVERT i16->i32 agree=true n_wired=960 n_oracle=960
+KERNEL name=cvt_element unit=sample units=3407760 reps=14199 us=100002 ps_per_unit=29345 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=cvt_element_oracle unit=sample units=517200 reps=2155 us=100038 ps_per_unit=193422 work_px=0 work_blocks=0 work_bytes=0
+PIEKERNEL sad_4x4 identical=true scalar=2048 pie=2048
+KERNEL name=sad4_scalar unit=block units=24668 reps=24668 us=100001 ps_per_unit=4053875 work_px=0 work_blocks=24669 work_bytes=0
+KERNEL name=sad4_pie unit=block units=29287 reps=29287 us=100002 ps_per_unit=3414552 work_px=0 work_blocks=29288 work_bytes=0
+KERNEL name=csi_full unit=sample units=76288 reps=149 us=100650 ps_per_unit=1319342 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=csi_no_isqrt unit=sample units=459264 reps=897 us=100079 ps_per_unit=217911 work_px=0 work_blocks=0 work_bytes=0
+B1EX src   =[f800, 8000, 0800, 0000, ffff, 4321, 2000, 1234]
+B1EX widen =[f800, 0000, 8000, 0000, 0800, 0000, 0000, 0000] (want f800,0000,8000,0000,0800,0000,0000,0000)
+B1EX shift =[001f, 0000, 0010, 0000, 0001, 0000, 0000, 0000]
+B1EX v_r   =[31, 16, 1, 0, 31, 8, 4, 2] (want 31,16,1,0,31,8,4,2)
+B1EX e     =[255, 132, 8, 0, 255, 66, 33, 16] (want 255,132,8,0,255,66,33,16)
+B1EX sum+2 =[776, 18, 644, 100, 389, 10, 323, 51] (want 776,18,644,100 in lanes 0..3)
+B1EX r5    =[24, 0, 20, 3, 12, 0, 10, 1] (want 24,0,20,3 in lanes 0..3)
+B1EX r5<<11=[0003, 0000, 0002, 0000, 0001, 0000, 0001, 0000]
+B1EX vmul multiplier=[2048, 2048, 2048, 2048, 2048, 2048, 2048, 2048] (want 2048 in every lane)
+B1EX vmul a=[24, 20, 12, 3, 1, 2, 4, 8] -> [3, 2, 1, 0, 0, 0, 0, 1]
+B1EX   low-half would be 49152,40960,24576,6144,2048,4096,8192,16384
+B1EX   (a*b)>>14 would be     3,    2,    1,   0,   0,   0,   0,    1
+PIEPRECOND b1 src_align=0 dst_align=0 out_bytes=512
+PIEKERNEL downscale2x_rgb565 identical=true
+B1DIAG k=0 oracle=7410 (r14 g32 b16)  pie=7410 (r14 g32 b16)
+B1DIAG k=1 oracle=8c18 (r17 g32 b24)  pie=8c18 (r17 g32 b24)
+B1DIAG k=2 oracle=83d0 (r16 g30 b16)  pie=83d0 (r16 g30 b16)
+B1DIAG k=3 oracle=9bf8 (r19 g31 b24)  pie=9bf8 (r19 g31 b24)
+KERNEL name=dscale565_scalar unit=px_out units=75264 reps=294 us=100164 ps_per_unit=1330835 work_px=75520 work_blocks=0 work_bytes=0
+KERNEL name=dscale565_pie unit=px_out units=218112 reps=852 us=100063 ps_per_unit=458768 work_px=218368 work_blocks=0 work_bytes=0
+PIEKERNEL yuyv_to_rgb565 identical=true src_align=0 dst_align=0
+KERNEL name=yuyv565_scalar unit=px units=250880 reps=245 us=100139 ps_per_unit=399150 work_px=251904 work_blocks=0 work_bytes=0
+KERNEL name=yuyv565_pie unit=px units=680960 reps=665 us=100098 ps_per_unit=146995 work_px=681984 work_blocks=0 work_bytes=0
+PIEKERNEL find_start_code3 identical=true scalar=Some(3000) pie=Some(3000)
+PIEKERNEL find_start_code3 all_offsets_identical=true
+KERNEL name=nalscan_scalar unit=byte units=835584 reps=204 us=100120 ps_per_unit=119820 work_px=0 work_blocks=0 work_bytes=839680
+KERNEL name=nalscan_pie unit=byte units=12361728 reps=3018 us=100004 ps_per_unit=8089 work_px=0 work_blocks=0 work_bytes=12365824
+KERNEL name=nalscan_pie_unaligned unit=byte units=11711700 reps=2860 us=100028 ps_per_unit=8540 work_px=0 work_blocks=0 work_bytes=11715795
+PIEB3SEAM nals_seam=8 nals_oracle=8 planted=8 agree=true
+KERNEL name=b3_seam_nal_spans unit=byte units=5304320 reps=1295 us=100055 ps_per_unit=18862 work_px=0 work_blocks=0 work_bytes=5308416
+KERNEL name=b3_twin_direct unit=byte units=6238208 reps=1523 us=100006 ps_per_unit=16031 work_px=0 work_blocks=0 work_bytes=6242304
+KERNEL name=b3_oracle_walk unit=byte units=724992 reps=177 us=100492 ps_per_unit=138611 work_px=0 work_blocks=0 work_bytes=729088
+P7 src.q.ld.ip q0=[20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 2a, 2b, 2c, 2d, 2e, 2f]
+P7               q1=[03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f, 10, 11, 12]
+P7               q2=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f]
+P7               ptr+16 (funnel of q1,q2 at SAR_BYTE=3 would be 03..12)
+P7 vadds.st.incp mem=[0, 0, 0, 0, 0, 0, 0, 0] qd=[0b, 00, 0c, 00, 0d, 00, 0e, 00, 0f, 00, 10, 00, 11, 00, 12, 00]
+P7               qu=[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00] ptr+16
+P7 ldqa.u8.128   qacc_lo8=[ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f] ptr+16
+P7 srs.accx sh0=360 sh2=90 (ACCX=360, so want 360 and 90)
+P7 mov.u8.qacc   qacc_lo8=[ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f, ff, 7f]
+P7 == end ==
+MEM stage=after_pie alloc=esp-alloc used=191744 free=4864 total=196608 budget=196608
+MEM stage=after_pie detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 191744, free: 4864, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 191744 }
+KERNEL name=sad_16x16 unit=block units=3150 reps=45 us=100356 ps_per_unit=31859047 work_px=0 work_blocks=3220 work_bytes=0
+KERNEL name=dot_i16 unit=sample units=403456 reps=197 us=100116 ps_per_unit=248146 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=sum_sq_i16 unit=sample units=626688 reps=306 us=100171 ps_per_unit=159841 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=peak_abs_i16 unit=sample units=1277952 reps=624 us=100014 ps_per_unit=78261 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=sum_sq_i16_le unit=sample units=547200 reps=57 us=101483 ps_per_unit=185458 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=satd_4x4_sum unit=block units=36288 reps=567 us=100123 ps_per_unit=2759121 work_px=0 work_blocks=36352 work_bytes=0
+KERNEL name=residual_4x4 unit=block units=527660 reps=7538 us=100000 ps_per_unit=189515 work_px=0 work_blocks=527730 work_bytes=0
+KERNEL name=hadamard_4x4 unit=block units=130496 reps=2039 us=100036 ps_per_unit=766582 work_px=0 work_blocks=130560 work_bytes=0
+KERNEL name=isqrt unit=sample units=77824 reps=38 us=101924 ps_per_unit=1309673 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=pcm_i16_to_f32 unit=sample units=478720 reps=935 us=100005 ps_per_unit=208900 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=pcm_f32_to_i16 unit=sample units=268800 reps=525 us=100062 ps_per_unit=372254 work_px=0 work_blocks=0 work_bytes=0
+MEM stage=audio_buffers alloc=esp-alloc used=188160 free=8448 total=196608 budget=196608
+MEM stage=audio_buffers detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 188160, free: 8448, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 188160 }
+KERNEL name=gain_i16 unit=sample units=374272 reps=1462 us=100032 ps_per_unit=267270 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=mono_to_stereo unit=sample units=521216 reps=2036 us=100044 ps_per_unit=191943 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=stereo_to_mono unit=frame units=415232 reps=1622 us=100004 ps_per_unit=240838 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=mix_i16 unit=sample units=377088 reps=1473 us=100007 ps_per_unit=265208 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=dc_block_mono unit=sample units=168704 reps=659 us=100090 ps_per_unit=593287 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=biquad_mono unit=sample units=123136 reps=481 us=100073 ps_per_unit=812703 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=agc_i16 unit=sample units=158720 reps=620 us=100021 ps_per_unit=630172 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=vad_i16 unit=sample units=1379072 reps=5387 us=100003 ps_per_unit=72514 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=resample_16k_48k unit=out_frame units=59136 reps=77 us=100037 ps_per_unit=1691642 work_px=0 work_blocks=0 work_bytes=0
+PRODPROBE scratch_bytes=1024 for 512 in
+KERNEL name=pipeline_dcblock unit=sample units=164096 reps=641 us=100040 ps_per_unit=609643 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=prod_audio_block unit=sample units=152832 reps=597 us=100093 ps_per_unit=654921 work_px=0 work_blocks=0 work_bytes=0
+MEM stage=after_audio alloc=esp-alloc used=189700 free=6908 total=196608 budget=196608
+MEM stage=after_audio detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 189700, free: 6908, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 189700 }
+KERNEL name=csi_features unit=subcarrier units=51272 reps=986 us=100031 ps_per_unit=1950986 work_px=0 work_blocks=0 work_bytes=0
+KERNEL name=csi_wander unit=subcarrier units=11440 reps=220 us=100266 ps_per_unit=8764510 work_px=0 work_blocks=0 work_bytes=0
+CSIPROBE wander=215 warm=true
+MEM stage=after_csi alloc=esp-alloc used=192424 free=4184 total=196608 budget=196608
+MEM stage=after_csi detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 192424, free: 4184, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 192424 }
+KERNEL name=ld2410_feed unit=byte units=230895 reps=5131 us=100001 ps_per_unit=433101 work_px=0 work_blocks=0 work_bytes=230940
+KERNEL name=rotate90_gray8 unit=px units=480000 reps=25 us=102400 ps_per_unit=213333 work_px=499200 work_blocks=0 work_bytes=0
+KERNEL name=testpattern_rgb565 unit=px units=326400 reps=17 us=100699 ps_per_unit=308514 work_px=345600 work_blocks=0 work_bytes=0
+KERNEL name=rotate180_as_written unit=px units=806400 reps=42 us=100974 ps_per_unit=125215 work_px=825600 work_blocks=0 work_bytes=0
+KERNEL name=rotate180_gray8 unit=px units=806400 reps=42 us=100970 ps_per_unit=125210 work_px=825600 work_blocks=0 work_bytes=0
+KERNEL name=jpeg_find_eoi unit=byte units=576000 reps=30 us=100941 ps_per_unit=175244 work_px=0 work_blocks=0 work_bytes=595200
+KERNEL name=sad_8x8 unit=block units=15330 reps=219 us=100269 ps_per_unit=6540704 work_px=0 work_blocks=15400 work_bytes=0
+MEM stage=after_kernels alloc=esp-alloc used=185088 free=11520 total=196608 budget=196608
+MEM stage=after_kernels detail=HeapStats { region_stats: [Some(RegionStats { size: 196608, used: 185088, free: 11520, capabilities: EnumSet(Internal) }), None, None], size: 196608, current_usage: 185088 }
+MEM stage=end alloc=esp-alloc used=185088 free=11520 total=196608 budget=196608
+[espino] expected line seen: "MEM stage=end"
+[espino] done: expect after 426 lines

@@ -20,3 +20,13 @@ Rules:
 - Release profile for a chip: `opt-level = "s"` (or `"z"`), `lto = true`,
   `codegen-units = 1`, `panic = "abort"`.
 - A firmware example is not a test. The library's tests run on the host.
+
+## Not a demo: the bootloader
+
+`esp32s3-boot/` is `rusty_esp_boot`, the second-stage bootloader for the
+ESP32-S3 (X8 of the killing-C plan): the program at flash `0x0` that the
+ROM loads and that loads the app. It breaks the `<board>-<track>-<demo>`
+naming because it is neither a board demo nor on a track; it is per chip,
+sits under every Track B firmware, and is its own project here for the same
+reasons the demos are (its own target, linker script and toolchain). Its
+README says how it is built, converted and flashed.

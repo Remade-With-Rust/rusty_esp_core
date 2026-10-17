@@ -57,6 +57,7 @@ pub mod error;
 pub mod frame;
 pub mod hal;
 pub mod media;
+pub mod nvs;
 pub mod pcm;
 pub mod prelude;
 pub mod time;

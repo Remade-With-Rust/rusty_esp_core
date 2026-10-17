@@ -1,0 +1,38 @@
+﻿== X7 rollback (rust2 bootloader), 2026-10-01T06:23:17.7964533Z ==
+[ok] table: F:\coding\janus\espino\partitions\mesh_ota_8mb.csv -> F:\jt-x0\run\x7-table.bin
+[ok] bootloader: F:/jt-x8/boot-open.bin (21504 B)
+[ok] images: good 662912 B, never-valid 662528 B, manifest 1042 B
+23:23:18 flashing by pieces
+[ok] write 0x0: [2026-10-01T06:23:19Z INFO ] Binary successfully written to flash!
+[ok] write 0x8000: [2026-10-01T06:23:20Z INFO ] Binary successfully written to flash!
+[ok] write 0x20000: [2026-10-01T06:23:22Z INFO ] Binary successfully written to flash!
+[ok] erase otadata: [2026-10-01T06:23:23Z INFO ] Erasing region at 0x00010000 (8192 bytes)
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4409
+  janus/cam-page-b: ota slot=Ota0 state=Valid
+  janus/cam-page-b: ota marked valid (was Valid)
+  janus/cam-page-b: sensor OV3660 configured=Ok(()) fps_cap=15 quality_scale=12
+  janus/cam-page-b: network hosting janus-cam (wpa2, up to 4 stations)
+  janus/cam-page-b: page http://192.168.71.1/?t=<token>  (stream at /stream; the page and the stream need the t= token, this device's own) join_ms=1015 dhcp_ms=1015
+[ok] boot 1: booted 0x20000, the image marked itself valid: True
+[ok] token: 22 characters from the page line
+[ok] body: manifest + newline + image = 663056 B
+[ok] joined: janus-cam
+[ok] board reachable: 192.168.71.1 port 80
+23:23:36 PUT /update (663056 B)
+[ok] push: 200 committed 0a8930d2c7f6ecfc44eb6b56664bb612cffa00b47ada41c57854736f378f622e
+[ok] booted new: slot before 0x20000, after the push 0x400000; PROOF line: True
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4409
+  janus/cam-page-b: ota slot=Ota0 state=Valid
+  janus/cam-page-b: ota marked valid (was Valid)
+  janus/cam-page-b: ota manifest firmware=0.1.0-never-valid bytes=662528 maker ok, signature ok
+  janus/cam-page-b: ota written 263148 of 662528
+  janus/cam-page-b: ota written 525386 of 662528
+  janus/cam-page-b: ota committed 0a8930d2c7f6ecfc44eb6b56664bb612cffa00b47ada41c57854736f378f622e
+  janus/cam-page-b: ota restarting into the new slot
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=4950
+  janus/cam-page-b: ota slot=Ota1 state=PendingVerify
+  janus/cam-page-b: PROOF: this image will not mark itself valid
+[ok] returned: to 'FBI Surveillance Van'
+  janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=5055
+[ok] after the hard reset: the bootloader loaded 0x20000; 
+=== ROLLBACK WORKS (rust2 bootloader): the never-valid image committed and booted 0x400000, and a hard reset FELL BACK to the good 0x20000.

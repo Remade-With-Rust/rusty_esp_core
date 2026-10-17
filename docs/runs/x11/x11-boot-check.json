@@ -1,0 +1,101 @@
+[
+ {
+  "name": "xiao-s3-probe",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-probe",
+  "bytes": 549248,
+  "expect": "MEM stage=end",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-probe.txt"
+ },
+ {
+  "name": "xiao-s3-keys",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-keys",
+  "bytes": 249264,
+  "expect": "== DONE ==",
+  "seen": false,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": false,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-keys.txt"
+ },
+ {
+  "name": "xiao-s3-kairos-tasks",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-kairos-tasks",
+  "bytes": 124176,
+  "expect": "RESULT: PASS",
+  "seen": true,
+  "panic": false,
+  "slot": "",
+  "ok": false,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-kairos-tasks.txt"
+ },
+ {
+  "name": "xiao-s3-sense-hal-pdm",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-sense-hal-pdm",
+  "bytes": 185408,
+  "expect": "== DONE ==",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-sense-hal-pdm.txt"
+ },
+ {
+  "name": "xiao-s3-sense-hal-capture",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-sense-hal-capture",
+  "bytes": 126928,
+  "expect": "== DONE ==",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-sense-hal-capture.txt"
+ },
+ {
+  "name": "xiao-s3-sense-hal-pdm-udp",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-sense-hal-pdm-udp",
+  "bytes": 519680,
+  "expect": "== JANUS MIC xiao-s3 track=B mode=stream ==",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-sense-hal-pdm-udp.txt"
+ },
+ {
+  "name": "xiao-s3-sense-hal-page",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-sense-hal-page",
+  "bytes": 541536,
+  "expect": "PAGE sensor=",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-sense-hal-page.txt"
+ },
+ {
+  "name": "xiao-s3-sense-hal-ble-provision",
+  "elf": "F:/jt-x11-xt/xtensa-esp32s3-none-elf/release\\xiao-s3-sense-hal-ble-provision",
+  "bytes": 705680,
+  "expect": "== JANUS BLE",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-xiao-s3-sense-hal-ble-provision.txt"
+ },
+ {
+  "name": "C14",
+  "elf": "F:/jt-x9/t/xtensa-esp32s3-none-elf/release/cam-page-b",
+  "bytes": 699152,
+  "expect": "camera up_s=20",
+  "seen": true,
+  "panic": false,
+  "slot": "0x20000",
+  "ok": true,
+  "log": "F:/jt-x10/x11\\x11-boot-C14.txt"
+ }
+]

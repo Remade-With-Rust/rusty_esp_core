@@ -1,0 +1,76 @@
+# X8 of the killing-C plan: the Janus second-stage bootloader for the
+# ESP32-S3, in Rust. It lives where ESP-IDF's C bootloader lives (flash 0x0,
+# the loader's own corner of internal SRAM above every app's RAM) and does
+# what that one does, in the same order: watchdog and analog-reset
+# housekeeping, the partition table at 0x8000, `otadata` with the rollback
+# rule, the app image verified (chip, checksum, appended SHA-256, and under
+# secure boot v2 the RSA-PSS signature sector through the ROM's verifier),
+# its RAM segments copied, its flash segments mapped through the cache MMU,
+# then the jump to the app's entry.
+#
+# No esp-hal: the loader has 27 KB of IRAM and must not be reconfiguring
+# clocks or peripherals the app will set up itself. The ROM's functions
+# (SPI flash, SHA, RSA-PSS, cache MMU, console) are the only code below it,
+# as they are below the C bootloader.
+#
+# A separate cargo project, like every firmware here: it needs its own
+# target, toolchain and linker script.
+
+[package]
+name = "rusty_esp_boot"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+publish = false
+description = "Janus's second-stage bootloader for the ESP32-S3: partition table, otadata with rollback, image verification (checksum, SHA-256, secure boot v2), load, map, jump."
+
+[[bin]]
+name = "rusty_esp_boot-esp32s3"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+# The reset vector, the exception vectors and the link script fragments.
+xtensa-lx-rt = "=0.23.0"
+# Register access for the handful of SoC registers the loader touches
+# (watchdogs, analog resets, cache buses, crypto clocks, systimer, eFuse).
+esp32s3 = { version = "=0.35.2", default-features = false }
+# The ROM's symbol addresses (its own linker scripts).
+esp-rom-sys = { version = "=0.1.5", features = ["esp32s3"] }
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+debug = 1
+
+[profile.dev]
+opt-level = "s"
+panic = "abort"
+
+# Its own project, not a member of the repo workspace (firmware/README.md).
+[workspace]
+
+[features]
+# QIO is on by default: it reads the flash's Quad Enable bit and switches only
+# when the bit is set (round 3, measured on the XIAO: load 79 -> 52 ms).
+default = ["qio"]
+# The console lines the loader printed before round 3: the clock and flash
+# registers on the version line, sizes, segments and the per-phase
+# milliseconds on the loaded line. The ROM's console is UART0 at 115200, about
+# 87 us a character, and those lines were ~530 characters of every boot;
+# without the feature a normal boot prints two short lines (core's ledger).
+verbose = []
+# Diagnostics: the systimer at the jump, in RTC_CNTL STORE0 (round 3). Never
+# in a shipped loader.
+jump-stamp = []
+# diagnostics only: the flash chip id and status words as the ROM reads them
+# (round 3, before any change of read mode)
+flash-diag = []
+# Quad I/O when the flash chip's Quad Enable bit is already set (round 3):
+# the loader's reads and the app's cache fills at twice DIO's width. The
+# status register is only ever read, never written.
+qio = []

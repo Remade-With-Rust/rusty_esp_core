@@ -1,0 +1,61 @@
+﻿{
+    "cases":  {
+                  "sb/unsigned":  {
+                                      "ok":  true,
+                                      "expected":  "refused: signature NoSignature",
+                                      "found":  true,
+                                      "app_booted":  false,
+                                      "should_boot":  false,
+                                      "capture":  "F:\\jt-x10\\x8-recheck\\x8-sb-unsigned.txt"
+                                  },
+                  "sb/flip-hash":  {
+                                       "ok":  true,
+                                       "expected":  "refused: (Sha256|Checksum)",
+                                       "found":  true,
+                                       "app_booted":  false,
+                                       "should_boot":  false,
+                                       "capture":  "F:\\jt-x10\\x8-recheck\\x8-sb-flip-hash.txt"
+                                   },
+                  "sb/flip-sig":  {
+                                      "ok":  true,
+                                      "expected":  "refused: signature (Rejected|DigestMismatch)",
+                                      "found":  true,
+                                      "app_booted":  false,
+                                      "should_boot":  false,
+                                      "capture":  "F:\\jt-x10\\x8-recheck\\x8-sb-flip-sig.txt"
+                                  },
+                  "sb/signed-good":  {
+                                         "ok":  true,
+                                         "expected":  "Loaded app from partition at offset 0x20000",
+                                         "found":  true,
+                                         "app_booted":  true,
+                                         "should_boot":  true,
+                                         "capture":  "F:\\jt-x10\\x8-recheck\\x8-sb-signed-good.txt"
+                                     },
+                  "open/flip-hash":  {
+                                         "ok":  true,
+                                         "expected":  "refused: (Sha256|Checksum)",
+                                         "found":  true,
+                                         "app_booted":  false,
+                                         "should_boot":  false,
+                                         "capture":  "F:\\jt-x10\\x8-recheck\\x8-open-flip-hash.txt"
+                                     },
+                  "open/flip-sig":  {
+                                        "ok":  true,
+                                        "expected":  "Loaded app from partition at offset 0x20000",
+                                        "found":  true,
+                                        "app_booted":  true,
+                                        "should_boot":  true,
+                                        "capture":  "F:\\jt-x10\\x8-recheck\\x8-open-flip-sig.txt"
+                                    },
+                  "open/unsigned":  {
+                                        "ok":  true,
+                                        "expected":  "Loaded app from partition at offset 0x20000",
+                                        "found":  true,
+                                        "app_booted":  true,
+                                        "should_boot":  true,
+                                        "capture":  "F:\\jt-x10\\x8-recheck\\x8-open-unsigned.txt"
+                                    }
+              },
+    "verdict":  "REFUSALS AS PLANNED"
+}

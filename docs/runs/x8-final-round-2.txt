@@ -1,0 +1,79 @@
+=== the open loader on the SIGNED image (is the 2 s the loader's path or the image?) 05:01:55
+[2026-10-01T12:02:04Z INFO ] Binary successfully written to flash!
+[2026-10-01T12:02:05Z INFO ] Erasing region at 0x00010000 (8192 bytes)
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 6 load 153 signature 0, 214 since reset
+janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=3827
+rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 clk=0x10001
+--
+rusty_esp_boot: v0.1.0 esp32s3, open: checksum and appended SHA-256; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 clk=0x10001
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 6 load 153 signature 0, 188 since reset
+janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=3393
+--
+=== the sb loader on the same signed image, two boots
+[2026-10-01T12:02:58Z INFO ] Binary successfully written to flash!
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 8 load 153 signature 120, 310 since reset
+rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 8 load 153 signature 120, 310 since reset
+--
+rusty_esp_boot: v0.1.0 esp32s3, secure boot v2 in software: the compiled-in key digest; flash dio 40 MHz 8 MB; cpu 80 MHz on the PLL (the ROM's 20), uart source 3, spi0 clk=0x10001 ctrl=0xac2008 spi1 
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 8 load 153 signature 120, 310 since reset
+janus/cam-page-b: boot (track B) did did:mata:29qcqKb5kMT529GSNgfcUU2gSf4bpd7EWUDEj2Mq7cb9J main_ms=5344
+--
+=== kill test 05:03:50
+[ok] sign: F:/jt-x8/good2.bin -> F:\jt-x8\good-signed.bin (667648 B): F:\jt-x8\good-signed.bin: 667648 bytes, one secure boot v2 signature block (RSA-3072 PSS); the image was 662912 bytes
+[ok] tamper: F:\jt-x8\flip-hash.bin: byte 0x1000 flipped; the signature sector is unchanged | F:\jt-x8\flip-sig.bin: byte 0x1000 flipped, checksum and SHA-256 repaired; the signature sector is unchang
+[ok] table: F:\coding\janus\espino\partitions\mesh_ota_8mb.csv -> F:\jt-x0\run\x8-table.bin
+05:03:51 loader sb: F:\jt-x8\boot-sb.bin (22288 B) at 0x0, the table, otadata and ota_1's first sector erased
+05:03:54 sb/unsigned : F:/jt-x8/good2.bin at 0x20000
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature NoSignature
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature NoSignature
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+[ok] sb/unsigned: expected /refused: signature NoSignature/: True; the app booted: False (should: False)
+05:04:10 sb/flip-hash : F:\jt-x8\flip-hash.bin at 0x20000
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 61, computed: 60 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 61, computed: 60 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+[ok] sb/flip-hash: expected /refused: (Sha256|Checksum)/: True; the app booted: False (should: False)
+05:04:32 sb/flip-sig : F:\jt-x8\flip-sig.bin at 0x20000
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature Rejected(1966311518)
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: ota_0 at 0x20000 refused: signature Rejected(1966311518)
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+[ok] sb/flip-sig: expected /refused: signature (Rejected|DigestMismatch)/: True; the app booted: False (should: False)
+05:04:53 sb/signed-good : F:\jt-x8\good-signed.bin at 0x20000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 8 load 153 signature 120, 310 since reset
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 8 load 153 signature 120, 310 since reset
+[ok] sb/signed-good: expected /Loaded app from partition at offset 0x20000/: True; the app booted: True (should: True)
+05:05:38 loader open: F:\jt-x8\boot-open.bin (22288 B) at 0x0, the table, otadata and ota_1's first sector erased
+05:05:42 open/flip-hash : F:\jt-x8\flip-hash.bin at 0x20000
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 61, computed: 60 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+  rusty_esp_boot: ota_0 at 0x20000 refused: Checksum { stored: 61, computed: 60 }
+  rusty_esp_boot: ota_1 at 0x400000 refused: Magic(255)
+  rusty_esp_boot: no bootable app image (2 candidates tried)
+[ok] open/flip-hash: expected /refused: (Sha256|Checksum)/: True; the app booted: False (should: False)
+05:06:04 open/flip-sig : F:\jt-x8\flip-sig.bin at 0x20000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 6 load 153 signature 0, 188 since reset
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 6 load 153 signature 0, 188 since reset
+[ok] open/flip-sig: expected /Loaded app from partition at offset 0x20000/: True; the app booted: True (should: True)
+05:06:48 open/unsigned : F:/jt-x8/good2.bin at 0x20000
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 6 load 153 signature 0, 188 since reset
+  rusty_esp_boot: ota_0 otadata seq 1 state Valid
+  rusty_esp_boot: Loaded app from partition at offset 0x20000: 662912 B, 5 segments, 64352 B into RAM, entry 0x40378900; ms: rom 28 table 6 load 153 signature 0, 188 since reset
+[ok] open/unsigned: expected /Loaded app from partition at offset 0x20000/: True; the app booted: True (should: True)
+=== REFUSALS AS PLANNED: 7 of 7 cases
+=== done 05:07:33

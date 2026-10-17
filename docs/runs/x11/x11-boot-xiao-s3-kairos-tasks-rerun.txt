@@ -1,0 +1,6 @@
+[espino] reset through COM4 (usb-jtag)
+8 table 6 load 28 signature 0, 89 since reset; cpu 80 MHz sysclkKT laps_a=50 laps_b=50 want=50 faults=0
+KT entries=103 swaps=103 declined_same=0 declined_no_ctx=0
+RESULT: PASS -- 50 and 50 hand-offs chosen by Kernel::switch_context, every witness intact, main resumed
+[espino] expected line seen: "RESULT: PASS"
+[espino] done: expect after 3 lines

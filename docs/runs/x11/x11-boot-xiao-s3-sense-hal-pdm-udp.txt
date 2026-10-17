@@ -1,0 +1,7 @@
+[espino] reset through COM4 (usb-jtag)
+rusty_esp_boot: ota_0 otadata seq 0 state Undefined
+rusty_esp_boot: otadata[0] was blank: ota_0 written as seq 1 Valid
+rusty_esp_boot: Loaded app from partition at offset 0x20000: 519680 B, 5 segments, 52912 B into RAM, entry 0x40378768; ms: rom 28 table 6 load 120 signature 0, 183 since reset; cpu 80 MHz sysclk=0xa8400 cpu_per=0xc
+== JANUS MIC xiao-s3 track=B mode=stream ==
+[espino] expected line seen: "== JANUS MIC xiao-s3 track=B mode=stream =="
+[espino] done: expect after 4 lines
