@@ -104,33 +104,33 @@ dependencies = [
 
 [[package]]
 name = "rusty_rtos_core"
-version = "0.1.0"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e3998d3323106878db36fbc8b565cd8eb572609118fa9a04e3e14c23ff80d80"
+checksum = "1bcc41d5f296c5bb2e2d83dfc4bda02447b0bae40320c57cafc4000ba03b6caa"
 
 [[package]]
 name = "rusty_rtos_kernel-core"
-version = "0.1.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f078537e5122d694f659cb347b8e9fc062f2c21639e2661af79d1bff76856f5"
+checksum = "e305b02f6f776978095bb0a28fdfa6cdb880b2a0313d38a662584cb3cabbd22f"
 dependencies = [
  "rusty_rtos_core",
 ]
 
 [[package]]
 name = "rusty_rtos_port-riscv"
-version = "0.1.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23f2f4a09cd2d9ea0d43253efa553034cbfeec31d6a7fdd2a0f8bc83b726e60d"
+checksum = "f7c4b5e2e333ea209f3b782f6c3839544076ec94651bd56f85186e5af19b2104"
 dependencies = [
  "rusty_rtos_core",
 ]
 
 [[package]]
 name = "rusty_rtos_port-xtensa"
-version = "0.1.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad0a37feb9ce9a0392ef3db8380d0e9d95785d8ecb66afd254f4e0d8787efb4b"
+checksum = "89b9bbdbe093d4186aaceabeb5761478ee00e79b8b103cfe5ebc7c8489b59ee6"
 dependencies = [
  "rusty_rtos_core",
  "xtensa-lx 0.12.0",

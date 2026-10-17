@@ -51,19 +51,19 @@ kernel = ["port", "dep:rusty_rtos_kernel-core"]
 # EXACT pins, and this is the one crate in the family allowed to name them.
 # 0.1.0 is the first published release of the Kairos ports; the API is not
 # frozen, so a range that could resolve forward is not worth writing yet.
-rusty_rtos_core = { version = "=0.1.0", default-features = false, optional = true }
+rusty_rtos_core = { version = "=0.2.4", default-features = false, optional = true }
 # The fixed-priority preemptive scheduler. `-core` rather than the facade:
 # it is the `no_std` half with no CPU and no allocator, which is what a
 # firmware links.
-rusty_rtos_kernel-core = { version = "=0.1.0", default-features = false, optional = true }
+rusty_rtos_kernel-core = { version = "=0.3.2", default-features = false, optional = true }
 
 [target.'cfg(target_arch = "xtensa")'.dependencies]
 # ESP32 (LX6) and ESP32-S3 (LX7), on the `esp` toolchain.
-rusty_rtos_port-xtensa = { version = "=0.1.0", optional = true }
+rusty_rtos_port-xtensa = { version = "=0.3.1", optional = true }
 
 [target.'cfg(target_arch = "riscv32")'.dependencies]
 # C6 / C61 / H2 / P4.
-rusty_rtos_port-riscv = { version = "=0.1.0", optional = true }
+rusty_rtos_port-riscv = { version = "=0.3.1", optional = true }
 
 [lints]
 workspace = true
