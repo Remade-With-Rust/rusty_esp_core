@@ -248,6 +248,9 @@ mod tests {
         // this is where that is noticed rather than in a firmware. 2.0.5 -> 2.2.6
         // with the portfolio release campaign (2.2.6: a merged free span keeps
         // its neighbour's purged flag; no API change since 2.0).
-        assert_eq!(VERSION, "2.2.6", "expected rusty_alloc 2.2.6, got {VERSION}");
+        assert_eq!(
+            VERSION, "2.2.6",
+            "expected rusty_alloc 2.2.6, got {VERSION}"
+        );
     }
 }
