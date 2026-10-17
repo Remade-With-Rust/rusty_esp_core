@@ -245,10 +245,12 @@ mod tests {
     #[test]
     fn the_pinned_version_is_the_one_the_manifest_names() {
         // The seam exists to hold one pin; if the dependency moves under it,
-        // this is where that is noticed rather than in a firmware.
-        assert!(
-            VERSION.starts_with("2.0."),
-            "expected rusty_alloc 2.0.x, got {VERSION}"
+        // this is where that is noticed rather than in a firmware. 2.0.5 -> 2.2.6
+        // with the portfolio release campaign (2.2.6: a merged free span keeps
+        // its neighbour's purged flag; no API change since 2.0).
+        assert_eq!(
+            VERSION, "2.2.6",
+            "expected rusty_alloc 2.2.6, got {VERSION}"
         );
     }
 }
