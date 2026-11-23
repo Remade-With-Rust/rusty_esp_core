@@ -55,9 +55,9 @@ dependencies = [
 
 [[package]]
 name = "rusty_alloc"
-version = "2.2.6"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "318c1ca44267aa30e631ed57f8c1db3e25991374bdadc35d97db11b65faba496"
+checksum = "fbc3c5d570c6a698fe1329b5abfbadeb3993723dc06af6c0dad541b2a34e1ff9"
 dependencies = [
  "libc",
  "portable-atomic",
@@ -66,9 +66,9 @@ dependencies = [
 
 [[package]]
 name = "rusty_alloc-api"
-version = "2.2.6"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "613568557b57208dff4fa2cdb1ada1bc98339d3cc3ab9533edd712c4946165b4"
+checksum = "99a38e4517642f7c2123e8a27200b15f06d763b59ab7a33d57a2f82dd958e66d"
 dependencies = [
  "rusty_alloc",
 ]
@@ -104,33 +104,33 @@ dependencies = [
 
 [[package]]
 name = "rusty_rtos_core"
-version = "0.2.4"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bcc41d5f296c5bb2e2d83dfc4bda02447b0bae40320c57cafc4000ba03b6caa"
+checksum = "10e25b7fc42fe14b8c57b02fbab467875d19d51587dbc3ab7d80fab228abcb28"
 
 [[package]]
 name = "rusty_rtos_kernel-core"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e305b02f6f776978095bb0a28fdfa6cdb880b2a0313d38a662584cb3cabbd22f"
+checksum = "d72abe345d9262e681fd53bd80a1e9c2e06074dae0fa388f5b9b179a8566b2dc"
 dependencies = [
  "rusty_rtos_core",
 ]
 
 [[package]]
 name = "rusty_rtos_port-riscv"
-version = "0.3.1"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7c4b5e2e333ea209f3b782f6c3839544076ec94651bd56f85186e5af19b2104"
+checksum = "814099904389fd6ab377f5bb9a19c2353d2a78e6411b539518b952fc161e8bf0"
 dependencies = [
  "rusty_rtos_core",
 ]
 
 [[package]]
 name = "rusty_rtos_port-xtensa"
-version = "0.3.1"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89b9bbdbe093d4186aaceabeb5761478ee00e79b8b103cfe5ebc7c8489b59ee6"
+checksum = "39ca0617250abac588eb3e63424a6e9b6d9af15322d1ef860963033c121c5ebf"
 dependencies = [
  "rusty_rtos_core",
  "xtensa-lx 0.12.0",
