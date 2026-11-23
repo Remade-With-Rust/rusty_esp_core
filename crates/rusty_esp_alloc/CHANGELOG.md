@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5](https://github.com/Remade-With-Rust/rusty_esp_core/compare/rusty_esp_alloc-v0.1.4...rusty_esp_alloc-v0.1.5) - 2026-11-23
+
+### Other
+
+- bump rusty_alloc to 2.6.0 ([#10](https://github.com/Remade-With-Rust/rusty_esp_core/pull/10))
+
 ## [0.1.4](https://github.com/Remade-With-Rust/rusty_esp_core/compare/rusty_esp_alloc-v0.1.3...rusty_esp_alloc-v0.1.4) - 2026-10-17
 
 ### Other
