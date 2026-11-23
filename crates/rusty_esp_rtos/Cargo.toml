@@ -59,7 +59,7 @@ rusty_rtos_kernel-core = { version = "0.3.4", default-features = false, optional
 
 [target.'cfg(target_arch = "xtensa")'.dependencies]
 # ESP32 (LX6) and ESP32-S3 (LX7), on the `esp` toolchain.
-rusty_rtos_port-xtensa = { version = "=0.3.1", optional = true }
+rusty_rtos_port-xtensa = { version = "0.3.3", optional = true }
 
 [target.'cfg(target_arch = "riscv32")'.dependencies]
 # C6 / C61 / H2 / P4.
