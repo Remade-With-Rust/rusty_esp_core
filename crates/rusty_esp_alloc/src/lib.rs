@@ -247,10 +247,14 @@ mod tests {
         // The seam exists to hold one pin; if the dependency moves under it,
         // this is where that is noticed rather than in a firmware. 2.0.5 -> 2.2.6
         // with the portfolio release campaign (2.2.6: a merged free span keeps
-        // its neighbour's purged flag; no API change since 2.0).
+        // its neighbour's purged flag; no API change since 2.0). 2.2.6 -> 2.6.0
+        // with the 2026-11-22 house-pins rollout: 2.3.1 commits the default
+        // arena 32 MiB at a time, 2.4.0 purges after a real 10 ms delay, 2.5.0
+        // shortens `realloc`'s entry, 2.6.0 adds an opt-in `allocator-api`
+        // feature -- nothing this seam or a chip's fixed region relies on.
         assert_eq!(
-            VERSION, "2.2.6",
-            "expected rusty_alloc 2.2.6, got {VERSION}"
+            VERSION, "2.6.0",
+            "expected rusty_alloc 2.6.0, got {VERSION}"
         );
     }
 }
